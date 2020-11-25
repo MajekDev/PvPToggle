@@ -1,0 +1,54 @@
+# PvPToggle by Majekdor | Created 06/07/2020 | Updated 11/19/2020
+# Need help? Message me on Discord @Majekdor#6346
+
+# Set whether pvp is on by default (default: false)
+default-pvp: false
+
+# If true, only players with permission pvptoggle.use can use /pvp (default: false)
+use-permissions: false
+
+# Set a cooldown for the time between players using /pvp
+# Default: -1 (no cooldown) put number in seconds if you change this
+pvp-cooldown: -1
+
+# Set whether or not changes in PvP status are logged to console (default: false)
+console-log: false
+
+# Don't set to true unless you want players to see random messages or other undesirable behavior
+debug: false
+
+# Database settings for MySQL support
+# Only enable this if you know what you're doing and have an existing database
+database-enabled: false
+host: ''
+port: ''
+database: ''
+username: ''
+password: ''
+use-ssl: false
+
+# =========================
+# | MESSAGE CONFIGURATION |
+# =========================
+# Feel free to use any mc color code
+pvp-enabled: '&6PvP is now: &aEnabled'
+
+pvp-disabled: '&6PvP is now: &cDisabled'
+
+no-pvp: '&6PvP is disabled. Use &7/pvp &6to turn it on.'
+
+other-pvp: '&b%player% &6has PvP disabled!'
+
+pvp-enabled-other: '&6PvP is now &aenabled &6for &b%player%&6.'
+
+pvp-disabled-other: '&6PvP is now &cdisabled &6for &b%player%&6.'
+
+unknown-player: '&cPlayer not found.'
+
+no-permission: '&cYou do not have permission to do that!'
+
+unknown-command: '&cUnknown command. &7Usage: /pvp <on|off> [player]'
+
+region-yes: '&6PvP is forced &aon &6in this region.'
+
+region-no: '&6PvP is forced &coff &6in this region.'
