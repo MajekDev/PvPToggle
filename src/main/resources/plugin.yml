@@ -3,7 +3,7 @@ version: ${project.version}
 main: dev.majek.pvptoggle.PvPToggle
 api-version: 1.16
 prefix: PvPToggle
-softdepend: [ WorldGuard, GriefPrevention, RegionProtection ]
+softdepend: [ WorldGuard, GriefPrevention, RegionProtection, PlaceholderAPI, Lands ]
 authors: [ Majekdor ]
 description: Easily toggle your PvP preference.
 website: https://majek.dev
@@ -11,6 +11,7 @@ commands:
   pvp:
     description: Toggle your PvP preference.
     usage: /pvp <on|off>
+    aliases: [ pvptoggle ]
 permissions:
   pvptoggle.others:
     description: Allows users to modify other player's PvP preference.

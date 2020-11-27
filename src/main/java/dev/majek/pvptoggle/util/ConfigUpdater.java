@@ -1,4 +1,4 @@
-package dev.majek.pvptoggle;
+package dev.majek.pvptoggle.util;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;

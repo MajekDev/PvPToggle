@@ -1,4 +1,4 @@
-# PvPToggle by Majekdor | Created 06/07/2020 | Updated 11/19/2020
+# PvPToggle by Majekdor | Created 06/07/2020 | Updated 11/26/2020
 # Need help? Message me on Discord @Majekdor#6346
 
 # Set whether pvp is on by default (default: false)
@@ -19,6 +19,7 @@ debug: false
 
 # Database settings for MySQL support
 # Only enable this if you know what you're doing and have an existing database
+# If database is disabled the plugin will use SQLite for data storage
 database-enabled: false
 host: ''
 port: ''
@@ -31,6 +32,8 @@ use-ssl: false
 # | MESSAGE CONFIGURATION |
 # =========================
 # Feel free to use any mc color code
+# %player% is replaced with the relevant player name
+# If %player% isn't in a message, don't put it there. It won't work
 pvp-enabled: '&6PvP is now: &aEnabled'
 
 pvp-disabled: '&6PvP is now: &cDisabled'
@@ -39,16 +42,27 @@ no-pvp: '&6PvP is disabled. Use &7/pvp &6to turn it on.'
 
 other-pvp: '&b%player% &6has PvP disabled!'
 
-pvp-enabled-other: '&6PvP is now &aenabled &6for &b%player%&6.'
-
-pvp-disabled-other: '&6PvP is now &cdisabled &6for &b%player%&6.'
-
-unknown-player: '&cPlayer not found.'
+unknown-player: '&cUnable to locate player %player%.'
 
 no-permission: '&cYou do not have permission to do that!'
 
 unknown-command: '&cUnknown command. &7Usage: /pvp <on|off> [player]'
 
-region-yes: '&6PvP is forced &aon &6in this region.'
+# The below messages use the strings at the bottom of this file
 
-region-no: '&6PvP is forced &coff &6in this region.'
+# %toggle% will be replaced with either on or off
+# %player% will be replaced with the player who's pvp has been toggled
+pvp-toggle-other: '&6PvP is now %toggle% for &b%player%&6.'
+
+# %noun% will be replaced with either you-are or player-is
+# %toggle% is either on or off
+region-deny: '&c%noun% in a region with PvP forced %toggle%.'
+
+# %toggle% is either on or off
+region-enter: 'You have entered a region where PvP is forced %toggle%.'
+
+# Strings for placeholders in above messages
+on: 'on'
+off: 'off'
+you-are: 'You are'
+player-is: '%player% is'
