@@ -15,6 +15,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
 
+/**
+ * WorldGuard region check and listener if the plugin is active
+ */
 public class WorldGuard implements Listener {
 
     public static WorldGuardPlugin worldGuardPlugin;

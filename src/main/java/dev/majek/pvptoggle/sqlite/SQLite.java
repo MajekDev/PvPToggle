@@ -23,6 +23,10 @@ public class SQLite extends Database {
             "'pvp' int(2) NOT NULL," +
             "PRIMARY KEY ('playerUUID'));";
 
+    /**
+     * Get the SQLite connection
+     * @return connection
+     */
     public Connection getSQLConnection() {
         File dataFolder = new File(plugin.getDataFolder(), dbname+".db");
         if (!dataFolder.exists()){
@@ -47,6 +51,9 @@ public class SQLite extends Database {
         return null;
     }
 
+    /**
+     * Try to load the database
+     */
     public void load() {
         connection = getSQLConnection();
         try {

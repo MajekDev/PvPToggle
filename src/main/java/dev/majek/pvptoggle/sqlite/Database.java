@@ -1,7 +1,6 @@
 package dev.majek.pvptoggle.sqlite;
 
 import dev.majek.pvptoggle.PvPToggle;
-import org.bukkit.entity.Player;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,6 +11,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
+/**
+ * Main class for SQLite functions
+ * Can you tell I followed different tutorials for MySQL and SQLite xD
+ */
 public abstract class Database {
 
     PvPToggle plugin;
@@ -30,6 +33,11 @@ public abstract class Database {
         connection = getSQLConnection();
     }
 
+    /**
+     * Close connection
+     * @param ps prepared statement
+     * @param rs result set
+     */
     public void close(PreparedStatement ps, ResultSet rs) {
         try {
             if (ps != null)
@@ -41,6 +49,9 @@ public abstract class Database {
         }
     }
 
+    /**
+     * Clear the entire data table
+     */
     public void clearTable() {
         Connection conn;
         PreparedStatement ps;
@@ -53,6 +64,10 @@ public abstract class Database {
         }
     }
 
+    /**
+     * Updata a player's status in the data table
+     * @param uuid the player's unique id
+     */
     public void updatePlayer(UUID uuid) {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -76,6 +91,11 @@ public abstract class Database {
         addPlayer(uuid, PvPToggle.getCore().hasPvPOn(uuid));
     }
 
+    /**
+     * Add a player to the data table
+     * @param uuid the player's unique id
+     * @param pvp the player's pvp status
+     */
     public void addPlayer(UUID uuid, boolean pvp) {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -102,6 +122,9 @@ public abstract class Database {
 
     List<String> playerUUIDS = new ArrayList<>();
 
+    /**
+     * Get all of the players in the data table
+     */
     public void getPlayers() {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -127,6 +150,9 @@ public abstract class Database {
         }
     }
 
+    /**
+     * Get the player's pvp statuses
+     */
     public void getPvPStatuses() {
         Connection conn = null;
         PreparedStatement ps = null;

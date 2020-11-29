@@ -5,6 +5,8 @@ import dev.majek.pvptoggle.events.PlayerJoin;
 import dev.majek.pvptoggle.events.PvPEvent;
 import dev.majek.pvptoggle.hooks.PlaceholderAPI;
 import dev.majek.pvptoggle.hooks.WorldGuard;
+import dev.majek.pvptoggle.mysql.MySQL;
+import dev.majek.pvptoggle.mysql.SQLGetter;
 import dev.majek.pvptoggle.sqlite.Database;
 import dev.majek.pvptoggle.sqlite.SQLite;
 import dev.majek.pvptoggle.util.ConfigUpdater;
@@ -16,14 +18,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Level;
 
 public final class PvPToggle extends JavaPlugin {
 
     // For API reasons, this hashmap is not to be modified anywhere except the setStatus method
     protected Map<UUID, Boolean> pvp = new HashMap<>();
+    // This list gets wiped every reset - we don't really care about it
     public static List<UUID> inRegion = new CopyOnWriteArrayList<>();
 
     public static FileConfiguration config;
@@ -31,7 +34,10 @@ public final class PvPToggle extends JavaPlugin {
             hasGriefPrevention = false, hasLands = false, hasGriefDefender = false;
     public static boolean debug = false;
     public static boolean consoleLog = false;
+    public static boolean usingMySQL = false;
     private Database db;
+    public MySQL SQL;
+    public SQLGetter data;
     public static PvPToggle instance;
     public PvPToggle() {
         instance = this;
@@ -57,18 +63,29 @@ public final class PvPToggle extends JavaPlugin {
         // Set config values
         debug = config.getBoolean("debug");
         consoleLog = config.getBoolean("console-log");
+        usingMySQL = config.getBoolean("database-enabled");
 
         // Hook into soft dependencies
         getHooks();
 
-        // Load pvp statuses from config
-        if (!this.getConfig().getBoolean("database-enabled")) {
-            this.db = new SQLite(this);
-            this.db.load();
-            this.db.getPlayers();
-            this.db.getPvPStatuses();
-            this.db.clearTable();
-            this.getLogger().log(Level.CONFIG, "Loading pvp statuses from database...");
+        // Load data from MySQL or SQLite
+        this.SQL = new MySQL();
+        this.data = new SQLGetter(this);
+        if (usingMySQL) {
+            try {
+                SQL.connect();
+            } catch (SQLException e) {
+                //e.printStackTrace();
+                this.getLogger().warning("Failed to connect to MySQL database... defaulting to SQLite.");
+                loadSQLite(); // Try to load from SQLite if MySQL fails
+            }
+            if (SQL.isConnected()) {
+                Bukkit.getLogger().info("Successfully connected to MySQL database.");
+                data.createTable();
+                data.getAllStatuses();
+            }
+        } else {
+            loadSQLite();
         }
 
         // Register commands and events
@@ -84,6 +101,8 @@ public final class PvPToggle extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        if (SQL.isConnected())
+            SQL.disconnect();
         // We don't really need to do anything here lol
         // Maybe save the hashmap just in case?
     }
@@ -109,7 +128,7 @@ public final class PvPToggle extends JavaPlugin {
     /**
      * Check if a player has never joined or has never been in the pvp hashmap
      * @param player player to check
-     * @return true if they're not found, false if they are
+     * @return true -> not found, false -> found
      */
     public boolean isNotInHashmap(Player player) {
         return !pvp.containsKey(player.getUniqueId());
@@ -117,9 +136,8 @@ public final class PvPToggle extends JavaPlugin {
 
     /**
      * Get a player's pvp status
-     * Note: player must be online
      * @param player requested online player
-     * @return true if pvp is on and false if pvp is off
+     * @return true -> pvp is on | false -> pvp is off
      */
     public boolean hasPvPOn(Player player) {
         return hasPvPOn(player.getUniqueId());
@@ -127,9 +145,8 @@ public final class PvPToggle extends JavaPlugin {
 
     /**
      * Get a player's pvp status from uuid
-     * Note: player may be offline
      * @param uuid requested player's uuid
-     * @return true if pvp is on and false if pvp is off
+     * @return true -> pvp is on | false -> pvp is off
      */
     public boolean hasPvPOn(UUID uuid) {
         if (pvp.containsKey(uuid))
@@ -143,22 +160,35 @@ public final class PvPToggle extends JavaPlugin {
 
     /**
      * Set a player's pvp status
-     * All changes to pvp hashmap must run through here
      * @param uuid the player's unique id
-     * @param toggle true for pvp on, false for pvp off
+     * @param toggle true -> pvp on, false -> pvp off
      */
     public void setStatus(UUID uuid, boolean toggle) {
         if (pvp.containsKey(uuid))
             pvp.replace(uuid, toggle);
         else
             pvp.put(uuid, toggle);
-        this.db.updatePlayer(uuid);
+        if (usingMySQL)
+            this.data.updateStatus(uuid);
+        else
+            this.db.updatePlayer(uuid);
         if (debug)
             Bukkit.getConsoleSender().sendMessage(format("&7[&cPvPToggle Debug&7] &f"
                     + uuid.toString() + " -> " + toggle));
         if (consoleLog)
             Bukkit.getConsoleSender().sendMessage(format("&7[&cPvPToggle Log&7] &f" +
                     Bukkit.getOfflinePlayer(uuid).getName() + "'s PvP status updated to: &b" + toggle));
+    }
+
+    /**
+     * Load pvp statuses saved in SQLite database
+     */
+    private void loadSQLite() {
+        this.db = new SQLite(this);
+        this.db.load();
+        this.db.getPlayers();
+        this.db.getPvPStatuses();
+        this.getLogger().config("Loading pvp statuses from SQLite database...");
     }
 
     /**
