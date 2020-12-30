@@ -18,7 +18,7 @@ public class GriefPrevention implements Listener {
     }
 
     public static Boolean getRegionToggle(Location location) {
-        return isClaimPvPSafeZone(location) ? true : null;
+        return isClaimPvPSafeZone(location) ? false : null;
     }
 
     @EventHandler
@@ -53,7 +53,7 @@ public class GriefPrevention implements Listener {
     public void check(Player player, Location location) {
         if (isClaimPvPSafeZone(location)) {
             player.sendMessage(PvPToggle.format((PvPToggle.config.getString("region-enter") + "")
-                    .replace("%toggle%", PvPToggle.config.getString("off") + "")));
+                    .replace("%toggle%", PvPToggle.config.getString("forced-off") + "")));
             PvPToggle.getCore().setStatus(player.getUniqueId(), false);
             PvPToggle.inRegion.add(player.getUniqueId());
         }

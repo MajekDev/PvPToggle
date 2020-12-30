@@ -10,6 +10,7 @@ import dev.majek.pvptoggle.mysql.SQLGetter;
 import dev.majek.pvptoggle.sqlite.Database;
 import dev.majek.pvptoggle.sqlite.SQLite;
 import dev.majek.pvptoggle.util.ConfigUpdater;
+import dev.majek.pvptoggle.util.PvPStatusChangeEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -28,6 +29,9 @@ public final class PvPToggle extends JavaPlugin {
     protected Map<UUID, Boolean> pvp = new HashMap<>();
     // This list gets wiped every reset - we don't really care about it
     public static List<UUID> inRegion = new CopyOnWriteArrayList<>();
+
+    // Used in PvPStatusChangeEvent call
+    private static boolean canceled = false;
 
     public static FileConfiguration config;
     public static boolean hasWorldGuard = false, hasRegionProtection = false,
@@ -51,9 +55,9 @@ public final class PvPToggle extends JavaPlugin {
 
         // Load new config values if there are any
         instance.saveDefaultConfig();
-        File configFile = new File(instance.getDataFolder(), "config.yml");
+        File configFile = new File(instance.getDataFolder(), "config.yml"); String[] foo = new String[0];
         try {
-            ConfigUpdater.update(instance, "config.yml", configFile, null);
+            ConfigUpdater.update(instance, "config.yml", configFile, Arrays.asList(foo));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -164,20 +168,39 @@ public final class PvPToggle extends JavaPlugin {
      * @param toggle true -> pvp on, false -> pvp off
      */
     public void setStatus(UUID uuid, boolean toggle) {
-        if (pvp.containsKey(uuid))
-            pvp.replace(uuid, toggle);
-        else
-            pvp.put(uuid, toggle);
-        if (usingMySQL)
-            this.data.updateStatus(uuid);
-        else
-            this.db.updatePlayer(uuid);
-        if (debug)
-            Bukkit.getConsoleSender().sendMessage(format("&7[&cPvPToggle Debug&7] &f"
-                    + uuid.toString() + " -> " + toggle));
-        if (consoleLog)
-            Bukkit.getConsoleSender().sendMessage(format("&7[&cPvPToggle Log&7] &f" +
-                    Bukkit.getOfflinePlayer(uuid).getName() + "'s PvP status updated to: &b" + toggle));
+        // Call status change event
+        Bukkit.getScheduler().runTask(this, () -> {
+            if (Bukkit.getPlayer(uuid) != null) {
+                PvPStatusChangeEvent statusChangeEvent = new PvPStatusChangeEvent(Bukkit.getPlayer(uuid), toggle);
+                Bukkit.getPluginManager().callEvent(statusChangeEvent);
+                if (statusChangeEvent.isCancelled())
+                    canceled = true;
+            }
+        });
+
+        // Give the event time to fire before continuing
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
+            if (canceled) { // Stop if event was canceled
+                if (debug || consoleLog)
+                    Bukkit.getConsoleSender().sendMessage("&7[&cPvPToggle Debug&7] &fPvP status change canceled for player " +
+                            Bukkit.getOfflinePlayer(uuid).getName() + ".");
+                canceled = false; return;
+            }
+            if (pvp.containsKey(uuid))
+                pvp.replace(uuid, toggle);
+            else
+                pvp.put(uuid, toggle);
+            if (usingMySQL)
+                this.data.updateStatus(uuid);
+            else
+                this.db.updatePlayer(uuid);
+            if (debug)
+                Bukkit.getConsoleSender().sendMessage(format("&7[&cPvPToggle Debug&7] &f"
+                        + uuid.toString() + " -> " + toggle));
+            if (consoleLog)
+                Bukkit.getConsoleSender().sendMessage(format("&7[&cPvPToggle Log&7] &f" +
+                        Bukkit.getOfflinePlayer(uuid).getName() + "'s PvP status updated to: &b" + toggle));
+        }, 2);
     }
 
     /**

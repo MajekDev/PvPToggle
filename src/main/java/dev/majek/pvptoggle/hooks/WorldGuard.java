@@ -84,15 +84,15 @@ public class WorldGuard implements Listener {
             }
 
             // Check if the player enters into a region
-        } else if (set.size() > 0) {
+        } else if (set.size() > 0 && !PvPToggle.inRegion.contains(player.getUniqueId())) {
             if (set.testState(localPlayer, Flags.PVP)) {
                 player.sendMessage(PvPToggle.format((PvPToggle.config.getString("region-enter") + "")
-                        .replace("%toggle%", PvPToggle.config.getString("on") + "")));
+                        .replace("%toggle%", PvPToggle.config.getString("forced-on") + "")));
                 PvPToggle.getCore().setStatus(player.getUniqueId(), true);
                 PvPToggle.inRegion.add(player.getUniqueId());
             } else if (!(set.testState(localPlayer, Flags.PVP))) {
                 player.sendMessage(PvPToggle.format((PvPToggle.config.getString("region-enter") + "")
-                        .replace("%toggle%", PvPToggle.config.getString("off") + "")));
+                        .replace("%toggle%", PvPToggle.config.getString("forced-off") + "")));
                 PvPToggle.getCore().setStatus(player.getUniqueId(), false);
                 PvPToggle.inRegion.add(player.getUniqueId());
             }

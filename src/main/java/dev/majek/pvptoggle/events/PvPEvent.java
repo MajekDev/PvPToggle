@@ -38,7 +38,7 @@ public class PvPEvent implements Listener {
             if (!Lands.canPvP(damager, attacked)) {
                 damager.sendMessage(PvPToggle.format((PvPToggle.config.getString("region-deny") + "")
                         .replace("%noun%", PvPToggle.config.getString("you-are") + "")
-                        .replace("%toggle%", PvPToggle.config.getString("off") + "")));
+                        .replace("%toggle%", PvPToggle.config.getString("forced-off") + "")));
                 event.setCancelled(true);
                 event.getEntity().setFireTicks(-1);
                 return;

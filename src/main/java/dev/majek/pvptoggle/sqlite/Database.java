@@ -165,7 +165,7 @@ public abstract class Database {
                 rs = ps.executeQuery();
                 while (rs.next()) {
                     if (rs.getString("playerUUID").equalsIgnoreCase(playerUUID)) {
-                        uuid = rs.getString("name");
+                        uuid = rs.getString("playerUUID");
                         pvp = rs.getInt("pvp");
                     }
                 }

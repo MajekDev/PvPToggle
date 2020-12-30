@@ -1,12 +1,12 @@
 package dev.majek.pvptoggle.command;
 
 import dev.majek.pvptoggle.PvPToggle;
-import dev.majek.pvptoggle.hooks.GriefDefender;
 import dev.majek.pvptoggle.hooks.GriefPrevention;
 import dev.majek.pvptoggle.hooks.WorldGuard;
 import dev.majek.pvptoggle.util.TabCompleterBase;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -42,12 +42,17 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
                     if (uuid == null || toggle == null) {
                         sender.sendMessage(ChatColor.RED + "Console usage: /pvp <on|off> <player>"); return true;
                     }
-                    String playerName = Bukkit.getOfflinePlayer(uuid).getName();
+                    OfflinePlayer person = Bukkit.getOfflinePlayer(uuid);
+                    sender.sendMessage(PvPToggle.format((config.getString("pvp-toggle-other") + "")
+                            .replace("%toggle%", toggle ? config.getString("forced-on")
+                                    + "" : config.getString("forced-off") + "")
+                            .replace("%player%", person.getName())));
+                    if (person.isOnline()) {
+                        Player onlinePerson = person.getPlayer();
+                        onlinePerson.sendMessage(PvPToggle.format(config.getString(PvPToggle.getCore()
+                                .hasPvPOn(onlinePerson) ? "pvp-enabled" : "pvp-disabled")));
+                    }
                     PvPToggle.getCore().setStatus(uuid, toggle);
-                    sender.sendMessage(ChatColor.GREEN + PvPToggle.format((toggle ?
-                            config.getString("pvp-enabled-other")
-                            + "" : config.getString("pvp-disabled-other") + "")
-                            .replace("%player%", playerName == null ? "null" : playerName)));
                 } else {
                     sender.sendMessage(ChatColor.RED + "Console usage: /pvp <on|off> <player>"); return true;
                 }
@@ -64,19 +69,20 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
 
             // Check if a player is in a region that doesn't allow pvp toggling
             if (playerIsInRegion(player) && getRegionToggle(player) != null) {
+                Bukkit.getConsoleSender().sendMessage(String.valueOf(getRegionToggle(player)));
                 player.sendMessage(PvPToggle.format((config.getString("region-deny") + "")
                         .replace("%noun%", args.length > 1 ? (config.getString("player-is") + "")
                                 .replace("%player%", args[1]) : config.getString("you-are") + "")
-                        .replace("%toggle%", getRegionToggle(player) ? config.getString("on")
-                                + "" : config.getString("off") + "")));
+                        .replace("%toggle%", getRegionToggle(player) ? config.getString("forced-on")
+                                + "" : config.getString("forced-off") + "")));
                 return true;
             }
 
                 // Set the player's own pvp status to the opposite of what it was
             if (args.length == 0) {
-                PvPToggle.getCore().setStatus(player.getUniqueId(), !PvPToggle.getCore().hasPvPOn(player));
-                player.sendMessage(PvPToggle.format(config.getString(PvPToggle.getCore().hasPvPOn(player) ?
+                player.sendMessage(PvPToggle.format(config.getString(!PvPToggle.getCore().hasPvPOn(player) ?
                         "pvp-enabled" : "pvp-disabled")));
+                PvPToggle.getCore().setStatus(player.getUniqueId(), !PvPToggle.getCore().hasPvPOn(player));
 
                 // Set the player's own pvp status to the specified toggle
             } else if (args.length == 1) {
@@ -118,7 +124,7 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
                         .replace("%toggle%", toggle ? config.getString("on")
                                 + "" : config.getString("off") + "")
                         .replace("%player%", target.getName())));
-                target.sendMessage(PvPToggle.format(config.getString(PvPToggle.getCore().hasPvPOn(player) ?
+                target.sendMessage(PvPToggle.format(config.getString(toggle ?
                         "pvp-enabled" : "pvp-disabled")));
 
                 if (PvPToggle.debug)

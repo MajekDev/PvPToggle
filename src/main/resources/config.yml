@@ -59,10 +59,10 @@ pvp-toggle-other: '&6PvP is now %toggle% for &b%player%&6.'
 region-deny: '&c%noun% in a region with PvP forced %toggle%.'
 
 # %toggle% is either on or off
-region-enter: 'You have entered a region where PvP is forced %toggle%.'
+region-enter: '&cYou have entered a region where PvP is forced %toggle%.'
 
 # Strings for placeholders in above messages
-on: 'on'
-off: 'off'
+forced-on: 'on'
+forced-off: 'off'
 you-are: 'You are'
 player-is: '%player% is'
