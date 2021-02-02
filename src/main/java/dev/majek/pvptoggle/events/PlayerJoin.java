@@ -21,5 +21,8 @@ public class PlayerJoin implements Listener {
             } else
                 PvPToggle.getCore().setStatus(player.getUniqueId(), PvPToggle.config.getBoolean("default-pvp"));
         }
+        // Turn pvp off based on config option
+        if (PvPToggle.config.getBoolean("off-on-join"))
+            PvPToggle.getCore().setStatus(player.getUniqueId(), false);
     }
 }

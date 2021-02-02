@@ -4,6 +4,9 @@
 # Set whether pvp is on by default (default: false)
 default-pvp: false
 
+# Set whether pvp is automatically set to false on join
+off-on-join: false
+
 # If true, only players with permission pvptoggle.use can use /pvp (default: false)
 use-permissions: false
 

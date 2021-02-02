@@ -121,8 +121,8 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
                 // Set the player's pvp status and notify both players
                 PvPToggle.getCore().setStatus(target.getUniqueId(), toggle);
                 player.sendMessage(PvPToggle.format((config.getString("pvp-toggle-other") + "")
-                        .replace("%toggle%", toggle ? config.getString("on")
-                                + "" : config.getString("off") + "")
+                        .replace("%toggle%", toggle ? config.getString("forced-on")
+                                + "" : config.getString("forced-off") + "")
                         .replace("%player%", target.getName())));
                 target.sendMessage(PvPToggle.format(config.getString(toggle ?
                         "pvp-enabled" : "pvp-disabled")));

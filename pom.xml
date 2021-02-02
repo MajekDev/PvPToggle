@@ -6,7 +6,7 @@
 
     <groupId>dev.majek.pvptoggle</groupId>
     <artifactId>PvPToggle</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
     <packaging>jar</packaging>
 
     <name>PvPToggle</name>
@@ -100,6 +100,12 @@
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
             <version>7.0.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.TechFortress</groupId>
+            <artifactId>GriefPrevention</artifactId>
+            <version>16.17.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

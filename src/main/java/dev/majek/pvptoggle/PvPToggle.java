@@ -10,6 +10,7 @@ import dev.majek.pvptoggle.mysql.SQLGetter;
 import dev.majek.pvptoggle.sqlite.Database;
 import dev.majek.pvptoggle.sqlite.SQLite;
 import dev.majek.pvptoggle.util.ConfigUpdater;
+import dev.majek.pvptoggle.util.Metrics;
 import dev.majek.pvptoggle.util.PvPStatusChangeEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -91,6 +92,9 @@ public final class PvPToggle extends JavaPlugin {
         } else {
             loadSQLite();
         }
+
+        // Metrics
+        new Metrics(this, 7799);
 
         // Register commands and events
         Objects.requireNonNull(this.getCommand("pvp")).setExecutor(new CommandPvP());
