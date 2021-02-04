@@ -26,7 +26,7 @@ You can access the PvP status change event the same way you access standard Bukk
 simply by doing `PvPToggle.getCore().hasPvPOn(player)` Note: This returns a boolean. 
 
 **Example:**
-```
+```java
 if (PvPToggle.getCore().hasPvPOn(player)) {
     // Do something
     PvPToggle.getCore().setStatus(player.getUniqueId(), true); // This would set their PvP status to true
