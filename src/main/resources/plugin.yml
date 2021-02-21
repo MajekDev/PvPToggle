@@ -1,7 +1,7 @@
 name: PvPToggle
-version: 2.0.0
+version: 2.0.2
 main: dev.majek.pvptoggle.PvPToggle
-api-version: 1.16
+api-version: 1.13
 prefix: PvPToggle
 softdepend: [ WorldGuard, GriefPrevention, RegionProtection, PlaceholderAPI, Lands ]
 authors: [ Majekdor ]
