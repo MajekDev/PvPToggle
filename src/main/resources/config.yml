@@ -14,6 +14,10 @@ use-permissions: false
 # Default: -1 (no cooldown) put number in seconds if you change this
 pvp-cooldown: -1
 
+# If set to true then PvP will be forced on for users in a WorldGuard region where PvP is set to allow
+# Otherwise PvPToggle will let them do what they want
+force-pvp-in-region-allow: false
+
 # Set whether or not changes in PvP status are logged to console (default: false)
 console-log: false
 
@@ -50,6 +54,8 @@ unknown-player: '&cUnable to locate player %player%.'
 no-permission: '&cYou do not have permission to do that!'
 
 unknown-command: '&cUnknown command. &7Usage: /pvp <on|off> [player]'
+
+on-cooldown: '&cYou may use this command again in %cooldown%.'
 
 # The below messages use the strings at the bottom of this file
 

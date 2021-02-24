@@ -46,7 +46,8 @@ public class WorldGuard implements Listener {
         RegionContainer container = com.sk89q.worldguard.WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionQuery query = container.createQuery();
         ApplicableRegionSet set = query.getApplicableRegions(loc);
-        if (set.testState(localPlayer, Flags.PVP))
+        if (set.testState(localPlayer, Flags.PVP) && PvPToggle.getCore().getConfig()
+                .getBoolean("force-pvp-in-region-allow"))
             return true;
         else if (!(set.testState(localPlayer, Flags.PVP)))
             return false;
@@ -85,7 +86,8 @@ public class WorldGuard implements Listener {
 
             // Check if the player enters into a region
         } else if (set.size() > 0 && !PvPToggle.inRegion.contains(player.getUniqueId())) {
-            if (set.testState(localPlayer, Flags.PVP)) {
+            if (set.testState(localPlayer, Flags.PVP) && PvPToggle.getCore().getConfig()
+                    .getBoolean("force-pvp-in-region-allow")) {
                 player.sendMessage(PvPToggle.format((PvPToggle.config.getString("region-enter") + "")
                         .replace("%toggle%", PvPToggle.config.getString("forced-on") + "")));
                 PvPToggle.getCore().setStatus(player.getUniqueId(), true);

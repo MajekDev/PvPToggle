@@ -4,6 +4,7 @@ import dev.majek.pvptoggle.PvPToggle;
 import dev.majek.pvptoggle.hooks.GriefPrevention;
 import dev.majek.pvptoggle.hooks.WorldGuard;
 import dev.majek.pvptoggle.util.TabCompleterBase;
+import dev.majek.pvptoggle.util.TimeInterval;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -16,14 +17,12 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class CommandPvP implements CommandExecutor, TabCompleter {
 
     FileConfiguration config = PvPToggle.config;
+    public static Map<Player, Long> cooldownMap = new HashMap<>();
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
@@ -67,9 +66,19 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
                 player.sendMessage(PvPToggle.format(config.getString("no-permission"))); return true;
             }
 
+            if (config.getInt("pvp-cooldown") > 0 && cooldownMap.containsKey(player)) {
+                long timeSinceLast = (System.currentTimeMillis() - cooldownMap.get(player));
+                if ((timeSinceLast / 1000L) < config.getInt("pvp-cooldown", 60)) {
+                    long useIn = (config.getInt("pvp-cooldown") * 1000L) - timeSinceLast;
+                    player.sendMessage(PvPToggle.format((config.getString("on-cooldown") + "")
+                            .replace("%cooldown%", TimeInterval.formatTime(useIn, true))));
+                    return true;
+                }
+
+            }
+
             // Check if a player is in a region that doesn't allow pvp toggling
             if (playerIsInRegion(player) && getRegionToggle(player) != null) {
-                Bukkit.getConsoleSender().sendMessage(String.valueOf(getRegionToggle(player)));
                 player.sendMessage(PvPToggle.format((config.getString("region-deny") + "")
                         .replace("%noun%", args.length > 1 ? (config.getString("player-is") + "")
                                 .replace("%player%", args[1]) : config.getString("you-are") + "")
@@ -77,6 +86,8 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
                                 + "" : config.getString("forced-off") + "")));
                 return true;
             }
+
+            boolean statusOther = false;
 
                 // Set the player's own pvp status to the opposite of what it was
             if (args.length == 0) {
@@ -118,6 +129,8 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
                     player.sendMessage(PvPToggle.format(config.getString("unknown-command"))); return true;
                 }
 
+                statusOther = true;
+
                 // Set the player's pvp status and notify both players
                 PvPToggle.getCore().setStatus(target.getUniqueId(), toggle);
                 player.sendMessage(PvPToggle.format((config.getString("pvp-toggle-other") + "")
@@ -130,6 +143,10 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
                 if (PvPToggle.debug)
                     target.sendMessage(player.getName() + " has updated your pvp status to " + toggle);
             }
+
+            // Put the player in the cooldown hashmap if they set their own
+            if (!statusOther)
+                cooldownMap.put(player, System.currentTimeMillis());
             return true;
         }
         return false;

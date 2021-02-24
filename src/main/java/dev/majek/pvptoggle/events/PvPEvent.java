@@ -21,6 +21,10 @@ public class PvPEvent implements Listener {
         if (PvPToggle.config.getBoolean("use-permissions") && !event.getEntity().hasPermission("pvptoggle.use"))
             return;
 
+        // Handle damage from Citizens NPCs
+        if (event.getEntity().hasMetadata("NPC"))
+            return;
+
         // Handle damage from projectiles
         Player damager = event.getDamager() instanceof Player ? (Player) event.getDamager() : null;
         if (damager == null && event.getDamager() instanceof Projectile) {
