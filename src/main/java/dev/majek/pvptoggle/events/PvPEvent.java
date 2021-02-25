@@ -22,7 +22,7 @@ public class PvPEvent implements Listener {
             return;
 
         // Handle damage from Citizens NPCs
-        if (event.getEntity().hasMetadata("NPC"))
+        if (event.getDamager().hasMetadata("NPC"))
             return;
 
         // Handle damage from projectiles
