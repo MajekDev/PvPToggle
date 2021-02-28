@@ -50,7 +50,8 @@ public class PlaceholderAPI extends PlaceholderExpansion {
     @Override
     public String onRequest(OfflinePlayer player, @NotNull String identifier) {
 
-
+        if (identifier.equalsIgnoreCase("%pvptoggle-status%"))
+            return PvPToggle.getCore().hasPvPOn(player.getUniqueId()) ? yes : no;
 
         return null;
     }
