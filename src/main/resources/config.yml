@@ -14,6 +14,11 @@ use-permissions: false
 # Default: -1 (no cooldown) put number in seconds if you change this
 pvp-cooldown: -1
 
+# Set the worlds where PvP Toggle is disabled
+# Below is an example. Uncomment the line and add the world name to disable
+disabled-worlds:
+#  - "world_nether"
+
 # If set to true then PvP will be forced on for users in a WorldGuard region where PvP is set to allow
 # Otherwise PvPToggle will let them do what they want
 force-pvp-in-region-allow: false
@@ -23,6 +28,10 @@ console-log: false
 
 # Don't set to true unless you want players to see random messages or other undesirable behavior
 debug: false
+
+# These are used for PAPI boolean values
+boolean-true: 'true'
+boolean-false: 'false'
 
 # Database settings for MySQL support
 # Only enable this if you know what you're doing and have an existing database
@@ -62,6 +71,12 @@ on-cooldown: '&cYou may use this command again in %cooldown%.'
 # %toggle% will be replaced with either on or off
 # %player% will be replaced with the player who's pvp has been toggled
 pvp-toggle-other: '&6PvP is now %toggle% for &b%player%&6.'
+
+pvp-toggle-all: '&6PvP is now %toggle% for everyone.'
+
+pvp-block-set: '&6Global PvP blocking is now set to %toggle%.'
+
+pvp-blocked: '&6Toggling PvP is blocked.'
 
 # %noun% will be replaced with either you-are or player-is
 # %toggle% is either on or off

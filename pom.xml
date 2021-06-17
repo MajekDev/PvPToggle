@@ -6,14 +6,14 @@
 
     <groupId>dev.majek.pvptoggle</groupId>
     <artifactId>PvPToggle</artifactId>
-    <version>2.0.7</version>
+    <version>2.1.0</version>
     <packaging>jar</packaging>
 
     <name>PvPToggle</name>
 
     <description>Easily toggle your PvP preference.</description>
     <properties>
-        <java.version>1.8</java.version>
+        <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <url>https://majek.dev</url>
@@ -25,8 +25,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>11</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -40,6 +39,17 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.jetbrains</pattern>
+                                    <shadedPattern>dev.majek.libs.org.jetbrains</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>javax.annotation</pattern>
+                                    <shadedPattern>dev.majek.libs.javax.annotation</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <minimizeJar>true</minimizeJar>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                         </configuration>
                     </execution>

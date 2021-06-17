@@ -1,5 +1,5 @@
 name: PvPToggle
-version: 2.0.7
+version: 2.0.8
 main: dev.majek.pvptoggle.PvPToggle
 api-version: 1.13
 prefix: PvPToggle
@@ -12,10 +12,19 @@ commands:
     description: Toggle your PvP preference.
     usage: /pvp <on|off>
     aliases: [ pvptoggle ]
+  allpvp:
+    description: Toggle all online players' PvP preference.
+    usage: /allpvp <on|off>
+  blockpvp:
+    description: Block players from toggling PvP.
+    usage: /blockpvp <true|false>
 permissions:
   pvptoggle.others:
     description: Allows users to modify other player's PvP preference.
     default: op
   pvptoggle.use:
     description: Allows players to use /pvp.
+  pvptoggle.admin:
+    description: Allows changing all online player's statuses.
+    default: op
 

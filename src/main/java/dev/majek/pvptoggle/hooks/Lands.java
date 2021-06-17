@@ -7,13 +7,13 @@ import org.bukkit.event.Listener;
 
 public class Lands implements Listener {
 
-    private static LandsIntegration landsIntegration;
+  private static LandsIntegration landsIntegration;
 
-    public Lands() {
-        Lands.landsIntegration = new LandsIntegration(PvPToggle.instance);
-    }
+  public Lands() {
+    Lands.landsIntegration = new LandsIntegration(PvPToggle.instance);
+  }
 
-    public static boolean canPvP(Player attacker, Player target) {
-        return landsIntegration.canPvP(attacker, target, target.getLocation(), false, false);
-    }
+  public static boolean canPvP(Player attacker, Player target) {
+    return landsIntegration.canPvP(attacker, target, target.getLocation(), false, false);
+  }
 }
