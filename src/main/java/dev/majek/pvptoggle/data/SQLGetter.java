@@ -123,7 +123,7 @@ public class SQLGetter {
         int pvp = 0;
         while (resultSet.next()) {
           if (resultSet.getString("playerUUID").equalsIgnoreCase(playerUUID.toString())) {
-            uuid = UUID.fromString(resultSet.getString("name"));
+            uuid = UUID.fromString(resultSet.getString("playerUUID"));
             pvp = resultSet.getInt("pvp");
           }
         }

@@ -50,13 +50,12 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
             .replace("%toggle%", toggle ? config.getString("forced-on")
                 + "" : config.getString("forced-off") + "")
             .replace("%player%", person.getName())));
+        PvPToggle.getCore().setStatus(uuid, toggle);
         if (person.isOnline()) {
           Player onlinePerson = person.getPlayer();
           if (onlinePerson != null)
-            onlinePerson.sendMessage(PvPToggle.format(config.getString(PvPToggle.getCore()
-                .hasPvPOn(onlinePerson) ? "pvp-enabled" : "pvp-disabled")));
+            onlinePerson.sendMessage(PvPToggle.format(config.getString(toggle ? "pvp-enabled" : "pvp-disabled")));
         }
-        PvPToggle.getCore().setStatus(uuid, toggle);
       } else {
         sender.sendMessage(ChatColor.RED + "Console usage: /pvp <on|off> <player>");
         return true;
