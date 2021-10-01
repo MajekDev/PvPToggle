@@ -10,7 +10,7 @@ public class Lands implements Listener {
   private static LandsIntegration landsIntegration;
 
   public Lands() {
-    Lands.landsIntegration = new LandsIntegration(PvPToggle.instance);
+    Lands.landsIntegration = new LandsIntegration(PvPToggle.core());
   }
 
   public static boolean canPvP(Player attacker, Player target) {

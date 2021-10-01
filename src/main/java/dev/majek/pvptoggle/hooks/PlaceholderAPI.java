@@ -1,6 +1,7 @@
 package dev.majek.pvptoggle.hooks;
 
 import dev.majek.pvptoggle.PvPToggle;
+import dev.majek.pvptoggle.data.User;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
@@ -41,10 +42,14 @@ public class PlaceholderAPI extends PlaceholderExpansion {
   @Override
   public String onRequest(OfflinePlayer player, @NotNull String identifier) {
 
+    User user = PvPToggle.dataHandler().getUser(player.getUniqueId());
+    if (user == null)
+      return null;
+
     if (identifier.equalsIgnoreCase("status"))
-      return PvPToggle.getCore().hasPvPOn(player.getUniqueId())
-          ? PvPToggle.getCore().getConfig().getString("boolean-true", "true")
-          : PvPToggle.getCore().getConfig().getString("boolean-false", "false");
+      return user.pvpStatus()
+          ? PvPToggle.core().getConfig().getString("boolean-true", "true")
+          : PvPToggle.core().getConfig().getString("boolean-false", "false");
 
     return null;
   }

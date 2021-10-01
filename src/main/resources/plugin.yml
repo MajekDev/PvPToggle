@@ -10,8 +10,9 @@ website: https://majek.dev
 commands:
   pvp:
     description: Toggle your PvP preference.
-    usage: /pvp <on|off>
+    usage: /pvp <on|off> [player]
     aliases: [ pvptoggle ]
+    permission: pvptoggle.use
   allpvp:
     description: Toggle all online players' PvP preference.
     usage: /allpvp <on|off>
@@ -26,9 +27,7 @@ permissions:
     default: op
   pvptoggle.use:
     description: Allows players to use /pvp.
-  pvptoggle.admin:
-    description: Allows changing all online player's statuses.
-    default: op
+    default: true
   pvptoggle.allpvp:
     description: Allows players to toggle the pvp status of all online players.
     default: op

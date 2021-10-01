@@ -1,65 +1,43 @@
 package dev.majek.pvptoggle.data;
 
-import dev.majek.pvptoggle.PvPToggle;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.UUID;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class DataHandler {
 
-  private final JSONConfig config;
+  private final Map<UUID, User> userMap;
 
   public DataHandler() {
-    config = new JSONConfig(PvPToggle.getCore().getDataFolder(), "pvp");
-    try {
-      config.createConfig();
-    } catch (FileNotFoundException e) {
-      PvPToggle.getCore().getLogger().severe("Unable to create pvp.json storage file!");
-      e.printStackTrace();
-    }
+    userMap = new HashMap<>();
   }
 
-  @SuppressWarnings("unchecked")
-  public void updatePvPStorage(UUID uuid, boolean toggle) {
-    if (PvPToggle.usingMySQL) {
-      PvPToggle.getMySQL().updateStatus(uuid);
+  public Collection<User> getAllUsers() {
+    return userMap.values();
+  }
+
+  public void addUser(@NotNull User user) {
+    userMap.put(user.id(), user);
+  }
+
+  @NotNull
+  public User getUser(@NotNull Player player) {
+    if (userMap.containsKey(player.getUniqueId())) {
+      return userMap.get(player.getUniqueId());
     } else {
-      JSONObject pvpJson = new JSONObject();
-      pvpJson.put(uuid.toString(), toggle);
-
-      try {
-        config.putInJSONObject(pvpJson);
-      } catch (IOException | ParseException e) {
-        PvPToggle.getCore().getLogger().severe("Unable to save player (uuid: \"" + uuid + "\") to pvp.json");
-        e.printStackTrace();
-      }
+      return new User(player);
     }
   }
 
-  @SuppressWarnings("unused")
-  public void loadPvPStorage() {
-    if (PvPToggle.usingMySQL)
-      PvPToggle.getMySQL().getAllStatuses();
-    else
-      loadFromJson();
+  @Nullable
+  public User getUser(@NotNull String name) {
+    return getAllUsers().stream().filter(user -> user.username().equalsIgnoreCase(name))
+        .collect(Collectors.toList()).get(0);
   }
 
-  public void loadFromJson() {
-    JSONObject fileContents;
-    try {
-      fileContents = config.toJSONObject();
-    } catch (IOException | ParseException e) {
-      PvPToggle.getCore().getLogger().severe("Critical error loading saved parties from parties.json");
-      e.printStackTrace();
-      return;
-    }
-    for (Object key : fileContents.keySet()) {
-      UUID playerID = UUID.fromString(key.toString());
-      boolean status = Boolean.getBoolean(fileContents.get(key).toString());
-      PvPToggle.getCore().setStatus(playerID, status);
-    }
+  public User getUser(@NotNull UUID uuid) {
+    return userMap.get(uuid);
   }
 }

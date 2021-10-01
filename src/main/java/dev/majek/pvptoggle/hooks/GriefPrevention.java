@@ -31,7 +31,7 @@ public class GriefPrevention implements Listener {
     // Reset pvp status if the player is leaving a region
     if (PvPToggle.inRegion.contains(player.getUniqueId())) {
       if (!playerInRegion(event.getTo())) {
-        PvPToggle.getCore().setStatus(player.getUniqueId(), PvPToggle.config.getBoolean("default-pvp"));
+        PvPToggle.core().setStatus(player.getUniqueId(), PvPToggle.config.getBoolean("default-pvp"));
         PvPToggle.inRegion.remove(player.getUniqueId());
       }
     }
@@ -54,7 +54,7 @@ public class GriefPrevention implements Listener {
     if (isClaimPvPSafeZone(location)) {
       player.sendMessage(PvPToggle.format((PvPToggle.config.getString("region-enter") + "")
           .replace("%toggle%", PvPToggle.config.getString("forced-off") + "")));
-      PvPToggle.getCore().setStatus(player.getUniqueId(), false);
+      PvPToggle.core().setStatus(player.getUniqueId(), false);
       PvPToggle.inRegion.add(player.getUniqueId());
     }
   }

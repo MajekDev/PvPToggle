@@ -3,22 +3,23 @@ package dev.majek.pvptoggle;
 import dev.majek.pvptoggle.command.CommandAllPvP;
 import dev.majek.pvptoggle.command.CommandBlockPvP;
 import dev.majek.pvptoggle.command.CommandPvP;
-import dev.majek.pvptoggle.data.DataHandler;
+import dev.majek.pvptoggle.data.*;
 import dev.majek.pvptoggle.events.PlayerJoin;
 import dev.majek.pvptoggle.events.PvPEvent;
 import dev.majek.pvptoggle.hooks.PlaceholderAPI;
 import dev.majek.pvptoggle.hooks.WorldGuard;
-import dev.majek.pvptoggle.data.MySQL;
-import dev.majek.pvptoggle.data.SQLGetter;
-import dev.majek.pvptoggle.data.ConfigUpdater;
+import dev.majek.pvptoggle.storage.JsonStorage;
+import dev.majek.pvptoggle.storage.SqlStorage;
+import dev.majek.pvptoggle.storage.StorageMethod;
 import dev.majek.pvptoggle.util.Metrics;
-import dev.majek.pvptoggle.util.PvPStatusChangeEvent;
+import dev.majek.pvptoggle.api.PvPStatusChangeEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,14 +29,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class PvPToggle extends JavaPlugin {
 
-  // For API reasons, this hashmap is not to be modified anywhere except the setStatus method
-  protected Map<UUID, Boolean> pvp = new HashMap<>();
   // This list gets wiped every reset - we don't really care about it
   public static List<UUID> inRegion = new CopyOnWriteArrayList<>();
-  public static List<World> disabledWorlds = new ArrayList<>();
-
-  // Used in PvPStatusChangeEvent call
-  private static boolean canceled = false;
+  private final List<World> disabledWorlds;
 
   public static Boolean blockPvp = false;
 
@@ -44,15 +40,17 @@ public final class PvPToggle extends JavaPlugin {
       hasGriefPrevention = false, hasLands = false, hasGriefDefender = false;
   public static boolean debug = false;
   public static boolean consoleLog = false;
-  public static boolean usingMySQL = false;
-  public MySQL SQL;
-  public SQLGetter data;
-  public DataHandler dataHandler;
-  public static PvPToggle instance;
+
+  private static MySQL sql;
+  private static DataHandler dataHandler;
+  private static PvPToggle instance;
+  private static StorageMethod storageMethod;
 
   public PvPToggle() {
     instance = this;
+    sql = new MySQL();
     dataHandler = new DataHandler();
+    disabledWorlds = new ArrayList<>();
   }
 
   @Override
@@ -75,30 +73,26 @@ public final class PvPToggle extends JavaPlugin {
     // Set config values
     debug = config.getBoolean("debug");
     consoleLog = config.getBoolean("console-log");
-    usingMySQL = config.getBoolean("database-enabled");
+
+    // Set storage method
+    if (config.getBoolean("database-enabled", false)) {
+      storageMethod = new SqlStorage();
+      try {
+        sql.connect();
+      } catch (SQLException e) {
+        error("Failed to connect to MySQL database... defaulting to Json.");
+        storageMethod = new JsonStorage();
+      }
+      if (sql.isConnected()) {
+        Bukkit.getLogger().info("Successfully connected to MySQL database.");
+        sql.createTable();
+      }
+    } else {
+      storageMethod = new JsonStorage();
+    }
 
     // Hook into soft dependencies
     getHooks();
-
-    // Load data from MySQL or SQLite
-    this.SQL = new MySQL();
-    this.data = new SQLGetter(this);
-    if (usingMySQL) {
-      try {
-        SQL.connect();
-      } catch (SQLException e) {
-        //e.printStackTrace();
-        this.getLogger().warning("Failed to connect to MySQL database... defaulting to JSON.");
-        getDataHandler().loadFromJson();
-      }
-      if (SQL.isConnected()) {
-        Bukkit.getLogger().info("Successfully connected to MySQL database.");
-        data.createTable();
-        data.getAllStatuses();
-      }
-    } else {
-      getDataHandler().loadFromJson();
-    }
 
     // Load disabled worlds
     for (String worldName : getConfig().getStringList("disabled-worlds")) {
@@ -123,8 +117,8 @@ public final class PvPToggle extends JavaPlugin {
   @Override
   public void onDisable() {
     // Plugin shutdown logic
-    if (SQL.isConnected())
-      SQL.disconnect();
+    if (sql.isConnected())
+      sql.disconnect();
     // We don't really need to do anything here lol
     // Maybe save the hashmap just in case?
   }
@@ -150,94 +144,65 @@ public final class PvPToggle extends JavaPlugin {
   }
 
   /**
-   * Get main PvPToggle functions
-   * Note: if you're hooking into PvPToggle, this is what you want
+   * Get main PvPToggle functions.
+   * Note: if you're hooking into PvPToggle, this is what you want.
    *
-   * @return PvPToggle instance
+   * @return PvPToggle instance.
    */
-  public static PvPToggle getCore() {
+  public static PvPToggle core() {
     return instance;
   }
 
-  public static DataHandler getDataHandler() {
-    return instance.dataHandler;
+  public static MySQL sql() {
+    return sql;
   }
 
-  public static SQLGetter getMySQL() {
-    return instance.data;
+  public static DataHandler dataHandler() {
+    return dataHandler;
   }
 
-  /**
-   * Check if a player has never joined or has never been in the pvp hashmap
-   *
-   * @param player player to check
-   * @return true -> not found, false -> found
-   */
-  public boolean isNotInHashmap(Player player) {
-    return !pvp.containsKey(player.getUniqueId());
+  public static FileConfiguration config() {
+    return core().getConfig();
   }
 
-  /**
-   * Get a player's pvp status
-   *
-   * @param player requested online player
-   * @return true -> pvp is on | false -> pvp is off
-   */
-  public boolean hasPvPOn(Player player) {
-    return hasPvPOn(player.getUniqueId());
+  public static StorageMethod storageMethod() {
+    return storageMethod;
+  }
+
+  public List<World> disabledWorlds() {
+    return disabledWorlds;
   }
 
   /**
-   * Get a player's pvp status from uuid
+   * Set a player's pvp status. This will call {@link PvPStatusChangeEvent}.
    *
-   * @param uuid requested player's uuid
-   * @return true -> pvp is on | false -> pvp is off
+   * @param player The player.
+   * @param toggle True -> pvp on, false -> pvp off.
    */
-  public boolean hasPvPOn(UUID uuid) {
-    if (pvp.containsKey(uuid))
-      return pvp.get(uuid);
-    else {
-      // Player is somehow not in the cache - add them
-      pvp.put(uuid, config.getBoolean("default-pvp"));
-      return config.getBoolean("default-pvp");
+  public void setStatus(Player player, boolean toggle) {
+    PvPStatusChangeEvent statusChangeEvent = new PvPStatusChangeEvent(player, toggle);
+    Bukkit.getPluginManager().callEvent(statusChangeEvent);
+    if (statusChangeEvent.isCancelled()) {
+      return;
     }
+    setStatus(player.getUniqueId(), toggle);
   }
 
   /**
-   * Set a player's pvp status
+   * Set a player's pvp status. This will not call {@link PvPStatusChangeEvent}.
    *
-   * @param uuid   the player's unique id
-   * @param toggle true -> pvp on, false -> pvp off
+   * @param uuid   The player's unique id.
+   * @param toggle True -> pvp on, false -> pvp off.
    */
   public void setStatus(UUID uuid, boolean toggle) {
-    // Call status change event
-    Bukkit.getScheduler().runTask(this, () -> {
-      if (Bukkit.getPlayer(uuid) != null) {
-        PvPStatusChangeEvent statusChangeEvent = new PvPStatusChangeEvent(Bukkit.getPlayer(uuid), toggle);
-        Bukkit.getPluginManager().callEvent(statusChangeEvent);
-        if (statusChangeEvent.isCancelled())
-          canceled = true;
-      }
-    });
-
-    // Give the event time to fire before continuing
-    Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
-      if (canceled) { // Stop if event was canceled
-        if (debug || consoleLog)
-          Bukkit.getConsoleSender().sendMessage("&7[&cPvPToggle Debug&7] &fPvP status change canceled for player " +
-              Bukkit.getOfflinePlayer(uuid).getName() + ".");
-        canceled = false;
-        return;
-      }
-      pvp.put(uuid, toggle);
-      getDataHandler().updatePvPStorage(uuid, toggle);
-      if (debug)
-        Bukkit.getConsoleSender().sendMessage(format("&7[&cPvPToggle Debug&7] &f"
-            + uuid.toString() + " -> " + toggle));
-      if (consoleLog)
-        Bukkit.getConsoleSender().sendMessage(format("&7[&cPvPToggle Log&7] &f" +
-            Bukkit.getOfflinePlayer(uuid).getName() + "'s PvP status updated to: &b" + toggle));
-    }, 2);
+    User user = dataHandler().getUser(uuid);
+    user.pvpStatus(toggle).updateUser();
+    if (debug)
+      Bukkit.getConsoleSender().sendMessage(format("&7[&cPvPToggle Debug&7] &f"
+          + uuid + " -> " + toggle));
+    if (consoleLog)
+      Bukkit.getConsoleSender().sendMessage(format("&7[&cPvPToggle Log&7] &f" +
+          Bukkit.getOfflinePlayer(uuid).getName() + "'s PvP status updated to: &b" + toggle));
   }
 
   /**
@@ -274,6 +239,20 @@ public final class PvPToggle extends JavaPlugin {
         this.getServer().getPluginManager().getPlugin("GriefDefender") != null) {
       getLogger().info("Hooking into GriefDefender...");
       hasGriefDefender = true;
+    }
+  }
+
+  public static void log(@NotNull Object x) {
+    core().getLogger().info(x.toString());
+  }
+
+  public static void error(@NotNull Object x) {
+    core().getLogger().severe(x.toString());
+  }
+
+  public static void debug(@NotNull Object x) {
+    if (debug) {
+      core().getLogger().warning(x.toString());
     }
   }
 }

@@ -5,11 +5,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class MySQL {
 
-  FileConfiguration c = PvPToggle.instance.getConfig();
+  FileConfiguration c = PvPToggle.core().getConfig();
   private final String host = c.getString("host");
   private final String port = c.getString("port");
   private final String database = c.getString("database");
@@ -56,5 +57,21 @@ public class MySQL {
    */
   public Connection getConnection() {
     return connection;
+  }
+
+  /**
+   * Create the pvp table in the MySQL database
+   */
+  public void createTable() {
+    PreparedStatement ps;
+    try {
+      ps = getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS pvp_data (" +
+          "playerUUID varchar(64) NOT NULL," +
+          "json varchar(1000) NOT NULL," +
+          "PRIMARY KEY (playerUUID));");
+      ps.executeUpdate();
+    } catch (SQLException ex) {
+      ex.printStackTrace();
+    }
   }
 }

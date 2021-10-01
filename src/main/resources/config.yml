@@ -66,6 +66,8 @@ unknown-command: '&cUnknown command. &7Usage: /pvp <on|off> [player]'
 
 on-cooldown: '&cYou may use this command again in %cooldown%.'
 
+disabled-world: '&cYou are in a world where this command is disabled.'
+
 # The below messages use the strings at the bottom of this file
 
 # %toggle% will be replaced with either on or off

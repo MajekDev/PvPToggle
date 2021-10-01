@@ -1,6 +1,7 @@
 package dev.majek.pvptoggle.events;
 
 import dev.majek.pvptoggle.PvPToggle;
+import dev.majek.pvptoggle.data.User;
 import dev.majek.pvptoggle.hooks.Lands;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -36,6 +37,13 @@ public class PvPEvent implements Listener {
     if (damager == null || damager == event.getEntity() || damager.hasMetadata("NPC"))
       return;
     Player attacked = (Player) event.getEntity();
+    User attackedUser = PvPToggle.dataHandler().getUser(attacked);
+    User damagerUser = PvPToggle.dataHandler().getUser(damager);
+
+    // Check if the player is in a world where the command is disabled
+    if (PvPToggle.core().disabledWorlds().contains(damager.getWorld())) {
+      return;
+    }
 
     // Cancel event and send messages
     if (PvPToggle.hasLands) {
@@ -48,11 +56,11 @@ public class PvPEvent implements Listener {
         return;
       }
     }
-    if (!PvPToggle.getCore().hasPvPOn(damager)) {
+    if (!damagerUser.pvpStatus()) {
       damager.sendMessage(PvPToggle.format(PvPToggle.config.getString("no-pvp")));
       event.setCancelled(true);
       event.getEntity().setFireTicks(-1);
-    } else if (!PvPToggle.getCore().hasPvPOn(attacked)) {
+    } else if (!attackedUser.pvpStatus()) {
       damager.sendMessage(PvPToggle.format((PvPToggle.config.getString("other-pvp") + "")
           .replace("%player%", attacked.getDisplayName())));
       event.setCancelled(true);

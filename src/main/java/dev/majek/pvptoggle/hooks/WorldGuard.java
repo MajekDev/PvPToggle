@@ -23,7 +23,7 @@ public class WorldGuard implements Listener {
   public static WorldGuardPlugin worldGuardPlugin;
 
   public static WorldGuardPlugin getWorldGuard() {
-    Plugin wgplugin = PvPToggle.instance.getServer().getPluginManager().getPlugin("WorldGuard");
+    Plugin wgplugin = PvPToggle.core().getServer().getPluginManager().getPlugin("WorldGuard");
     if (!(wgplugin instanceof WorldGuardPlugin)) {
       return null;
     }
@@ -47,7 +47,7 @@ public class WorldGuard implements Listener {
     RegionContainer container = com.sk89q.worldguard.WorldGuard.getInstance().getPlatform().getRegionContainer();
     RegionQuery query = container.createQuery();
     ApplicableRegionSet set = query.getApplicableRegions(loc);
-    if (set.testState(localPlayer, Flags.PVP) && PvPToggle.getCore().getConfig()
+    if (set.testState(localPlayer, Flags.PVP) && PvPToggle.core().getConfig()
         .getBoolean("force-pvp-in-region-allow"))
       return true;
     else if (!(set.testState(localPlayer, Flags.PVP)))
@@ -81,22 +81,22 @@ public class WorldGuard implements Listener {
     // Check if the player enters the global region from a region
     if (set.size() == 0 && fromPlayerMove) {
       if (PvPToggle.inRegion.contains(player.getUniqueId())) {
-        PvPToggle.getCore().setStatus(player.getUniqueId(), PvPToggle.config.getBoolean("default-pvp"));
+        PvPToggle.core().setStatus(player.getUniqueId(), PvPToggle.config.getBoolean("default-pvp"));
         PvPToggle.inRegion.remove(player.getUniqueId());
       }
 
       // Check if the player enters into a region
     } else if (set.size() > 0 && !PvPToggle.inRegion.contains(player.getUniqueId())) {
-      if (set.testState(localPlayer, Flags.PVP) && PvPToggle.getCore().getConfig()
+      if (set.testState(localPlayer, Flags.PVP) && PvPToggle.core().getConfig()
           .getBoolean("force-pvp-in-region-allow")) {
         player.sendMessage(PvPToggle.format((PvPToggle.config.getString("region-enter") + "")
             .replace("%toggle%", PvPToggle.config.getString("forced-on") + "")));
-        PvPToggle.getCore().setStatus(player.getUniqueId(), true);
+        PvPToggle.core().setStatus(player.getUniqueId(), true);
         PvPToggle.inRegion.add(player.getUniqueId());
       } else if (!(set.testState(localPlayer, Flags.PVP))) {
         player.sendMessage(PvPToggle.format((PvPToggle.config.getString("region-enter") + "")
             .replace("%toggle%", PvPToggle.config.getString("forced-off") + "")));
-        PvPToggle.getCore().setStatus(player.getUniqueId(), false);
+        PvPToggle.core().setStatus(player.getUniqueId(), false);
         PvPToggle.inRegion.add(player.getUniqueId());
       }
       // If the flag is neither on or off we don't need to do anything

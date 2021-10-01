@@ -28,11 +28,11 @@ public class CommandAllPvP implements TabExecutor {
     else
       return false;
     for (Player player : Bukkit.getOnlinePlayers()) {
-      PvPToggle.getCore().setStatus(player.getUniqueId(), status);
-      player.sendMessage(PvPToggle.format(PvPToggle.getCore().getConfig()
+      PvPToggle.core().setStatus(player.getUniqueId(), status);
+      player.sendMessage(PvPToggle.format(PvPToggle.core().getConfig()
           .getString(status ? "pvp-enabled" : "pvp-disabled")));
     }
-    sender.sendMessage(PvPToggle.format((PvPToggle.getCore().getConfig().getString("pvp-toggle-all") + "")
+    sender.sendMessage(PvPToggle.format((PvPToggle.core().getConfig().getString("pvp-toggle-all") + "")
         .replace("%toggle%", String.valueOf(status))));
     return true;
   }

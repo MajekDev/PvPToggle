@@ -1,4 +1,4 @@
-package dev.majek.pvptoggle.util;
+package dev.majek.pvptoggle.api;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;

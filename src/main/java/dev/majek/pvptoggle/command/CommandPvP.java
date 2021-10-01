@@ -6,174 +6,131 @@ import dev.majek.pvptoggle.hooks.WorldGuard;
 import dev.majek.pvptoggle.util.TabCompleterBase;
 import dev.majek.pvptoggle.util.TimeInterval;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class CommandPvP implements CommandExecutor, TabCompleter {
+public class CommandPvP implements TabExecutor {
 
-  FileConfiguration config = PvPToggle.config;
   public static Map<Player, Long> cooldownMap = new HashMap<>();
 
   @Override
-  public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
-                           @NotNull String label, @NotNull String[] args) {
-    // The console is trying to change a player's pvp status
-    if (!(sender instanceof Player)) {
-      if (args.length == 2) {
-        Boolean toggle = null;
-        if (args[0].equalsIgnoreCase("on"))
-          toggle = true;
-        else if (args[0].equalsIgnoreCase("off"))
-          toggle = false;
-        UUID uuid = Bukkit.getPlayerUniqueId(args[1]);
-        if (uuid == null || toggle == null) {
-          sender.sendMessage(ChatColor.RED + "Console usage: /pvp <on|off> <player>");
-          return true;
-        }
-        OfflinePlayer person = Bukkit.getOfflinePlayer(uuid);
-        if (person.getName() == null) {
-          sender.sendMessage(PvPToggle.format(config.getString("unknown-player",
-              "Unknown player %player%") + "".replace("%player%", args[1])));
-          return true;
-        }
-        sender.sendMessage(PvPToggle.format((config.getString("pvp-toggle-other") + "")
-            .replace("%toggle%", toggle ? config.getString("forced-on")
-                + "" : config.getString("forced-off") + "")
-            .replace("%player%", person.getName())));
-        PvPToggle.getCore().setStatus(uuid, toggle);
-        if (person.isOnline()) {
-          Player onlinePerson = person.getPlayer();
-          if (onlinePerson != null)
-            onlinePerson.sendMessage(PvPToggle.format(config.getString(toggle ? "pvp-enabled" : "pvp-disabled")));
-        }
-      } else {
-        sender.sendMessage(ChatColor.RED + "Console usage: /pvp <on|off> <player>");
+  public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+
+    // Check if we're changing another player's status
+    if (args.length > 1) {
+
+      // Make sure the sender has permission
+      if (!sender.hasPermission("pvptoggle.others"))   {
+        sender.sendMessage(PvPToggle.config().getString("no-permission", "&cYou do not have permission to do that!"));
         return true;
       }
-      return true;
-    }
 
-    // A player is trying to change a player's pvp status
-    Player player = (Player) sender;
-
-    // Make sure the player has the proper permission
-    if (config.getBoolean("use-permissions") && !player.hasPermission("pvptoggle.use")) {
-      player.sendMessage(PvPToggle.format(config.getString("no-permission")));
-      return true;
-    }
-
-    // Check if the player is in a world where the command is disabled
-    if (PvPToggle.disabledWorlds.contains(player.getWorld()))
-      return true;
-
-    if (config.getInt("pvp-cooldown") > 0 && cooldownMap.containsKey(player)) {
-      long timeSinceLast = (System.currentTimeMillis() - cooldownMap.get(player));
-      if ((timeSinceLast / 1000L) < config.getInt("pvp-cooldown", 60)) {
-        long useIn = (config.getInt("pvp-cooldown") * 1000L) - timeSinceLast;
-        player.sendMessage(PvPToggle.format((config.getString("on-cooldown") + "")
-            .replace("%cooldown%", TimeInterval.formatTime(useIn, true))));
-        return true;
-      }
-    }
-
-    // Check if PvP is blocked globally
-    if (PvPToggle.blockPvp) {
-      player.sendMessage(PvPToggle.format(config.getString("pvp-blocked")));
-      return true;
-    }
-
-    // Check if a player is in a region that doesn't allow pvp toggling
-    if (playerIsInRegion(player) && getRegionToggle(player) != null) {
-      player.sendMessage(PvPToggle.format((config.getString("region-deny") + "")
-          .replace("%noun%", args.length > 1 ? (config.getString("player-is") + "")
-              .replace("%player%", args[1]) : config.getString("you-are") + "")
-          .replace("%toggle%", getRegionToggle(player) ? config.getString("forced-on")
-              + "" : config.getString("forced-off") + "")));
-      return true;
-    }
-
-    boolean statusOther = false;
-
-    // Set the player's own pvp status to the opposite of what it was
-    if (args.length == 0) {
-      player.sendMessage(PvPToggle.format(config.getString(!PvPToggle.getCore().hasPvPOn(player) ?
-          "pvp-enabled" : "pvp-disabled")));
-      PvPToggle.getCore().setStatus(player.getUniqueId(), !PvPToggle.getCore().hasPvPOn(player));
-
-      // Set the player's own pvp status to the specified toggle
-    } else if (args.length == 1) {
+      // Get toggle
+      boolean toggle;
       if (args[0].equalsIgnoreCase("on")) {
-        PvPToggle.getCore().setStatus(player.getUniqueId(), true);
-        player.sendMessage(PvPToggle.format(config.getString("pvp-enabled")));
-      } else if (args[0].equalsIgnoreCase("off")) {
-        PvPToggle.getCore().setStatus(player.getUniqueId(), false);
-        player.sendMessage(PvPToggle.format(config.getString("pvp-disabled")));
-      } else {
-        player.sendMessage(PvPToggle.format(config.getString("unknown-command")));
-
-        return true;
-      }
-
-      // Set a target player's pvp status to the specified toggle
-    } else if (args.length == 2) {
-      // Make sure player has permission to change other player's pvp status
-      if (!player.hasPermission("pvptoggle.others")) {
-        player.sendMessage(PvPToggle.format(config.getString("no-permission")));
-        return true;
-      }
-      Player target = Bukkit.getPlayerExact(args[1]);
-      Boolean toggle = null;
-      if (args[0].equalsIgnoreCase("on"))
         toggle = true;
-      else if (args[0].equalsIgnoreCase("off"))
+      } else if (args[0].equalsIgnoreCase("off")) {
         toggle = false;
+      } else {
+        return false; // Send usage
+      }
 
-      // Unknown player or incorrect syntax
+      // Get target player
+      Player target = Bukkit.getPlayer(args[1]);
+
+      // Make sure target is online
       if (target == null) {
-        player.sendMessage(PvPToggle.format((config.getString("unknown-player") + "")
-            .replace("%player%", args[1])));
-        return true;
-      }
-      if (toggle == null) {
-        player.sendMessage(PvPToggle.format(config.getString("unknown-command")));
+        sender.sendMessage(PvPToggle.format(PvPToggle.config().getString("unknown-player",
+            "&cUnable to locate player %player%.").replace("%player%", args[1])));
         return true;
       }
 
-      statusOther = true;
+      // Check if a target is in a region that doesn't allow pvp toggling
+      if (playerIsInRegion(target) && getRegionToggle(target) != null) {
+        sender.sendMessage(PvPToggle.format(PvPToggle.config().getString("region-deny",
+            "&c%noun% in a region with PvP forced %toggle%.").replace("%noun%", PvPToggle.config()
+            .getString("player is", "%player% is").replace("%target%", target.getName()))
+            .replace("%toggle%", getRegionToggle(target) ? PvPToggle.config().getString("forced-on", "on")
+                : PvPToggle.config().getString("forced-off", "off"))));
+        return true;
+      }
 
-      // Set the player's pvp status and notify both players
-      PvPToggle.getCore().setStatus(target.getUniqueId(), toggle);
-      player.sendMessage(PvPToggle.format((config.getString("pvp-toggle-other") + "")
-          .replace("%toggle%", toggle ? config.getString("forced-on")
-              + "" : config.getString("forced-off") + "")
+      // Change target status and send message
+      sender.sendMessage(PvPToggle.format(PvPToggle.config().getString("pvp-toggle-other",
+          "&6PvP is now %toggle% for &b%player%&6.").replace("%toggle%", toggle ? PvPToggle.config()
+          .getString("forced-on", "on") : PvPToggle.config().getString("forced-off", "off"))
           .replace("%player%", target.getName())));
-      target.sendMessage(PvPToggle.format(config.getString(toggle ?
-          "pvp-enabled" : "pvp-disabled")));
-
-      if (PvPToggle.debug)
-        target.sendMessage(player.getName() + " has updated your pvp status to " + toggle);
+      PvPToggle.core().setStatus(target, toggle);
+      target.sendMessage(PvPToggle.format(PvPToggle.config().getString(toggle ? "pvp-enabled" : "pvp-disabled")));
     }
 
-    // Put the player in the cooldown hashmap if they set their own
-    if (!statusOther)
-      cooldownMap.put(player, System.currentTimeMillis());
+    else if (args.length == 1) {
+
+      if (!(sender instanceof Player)) {
+        return false;
+      }
+
+      Player player = (Player) sender;
+
+      // Check if the player is in a world where the command is disabled
+      if (PvPToggle.core().disabledWorlds().contains(player.getWorld())) {
+        player.sendMessage(PvPToggle.format(PvPToggle.config().getString("disabled-world",
+            "&cYou are in a world where this command is disabled.")));
+        return true;
+      }
+
+      // Check if the command is on cooldown
+      if (PvPToggle.config().getInt("pvp-cooldown", 60) > 0 && cooldownMap.containsKey(player)) {
+        long timeSinceLast = (System.currentTimeMillis() - cooldownMap.get(player));
+        if ((timeSinceLast / 1000L) < PvPToggle.config().getInt("pvp-cooldown", 60)) {
+          long useIn = (PvPToggle.config().getInt("pvp-cooldown", 60) * 1000L) - timeSinceLast;
+          player.sendMessage(PvPToggle.format(PvPToggle.config().getString("on-cooldown",
+              "&cYou may use this command again in %cooldown%.")
+              .replace("%cooldown%", TimeInterval.formatTime(useIn, true))));
+          return true;
+        }
+      }
+
+      // Check if the player is blocked from changing their status
+      if (PvPToggle.dataHandler().getUser(player).pvpBlocked()) {
+        player.sendMessage(PvPToggle.format(PvPToggle.config().getString("pvp-blocked", "&6Toggling PvP is blocked.")));
+        return true;
+      }
+
+      // Check if a player is in a region that doesn't allow pvp toggling
+      if (playerIsInRegion(player) && getRegionToggle(player) != null) {
+        player.sendMessage(PvPToggle.format(PvPToggle.config().getString("region-deny",
+            "&c%noun% in a region with PvP forced %toggle%.").replace("%noun%", PvPToggle.config()
+            .getString("you-are", "You are")).replace("%toggle%", getRegionToggle(player) ? PvPToggle
+            .config().getString("forced-on", "on") : PvPToggle.config().getString("forced-off", "off"))));
+        return true;
+      }
+
+      // Set pvp status
+      if (args[0].equalsIgnoreCase("on")) {
+        PvPToggle.core().setStatus(player.getUniqueId(), true);
+        player.sendMessage(PvPToggle.format(PvPToggle.config().getString("pvp-enabled")));
+        cooldownMap.put(player, System.currentTimeMillis());
+      } else if (args[0].equalsIgnoreCase("off")) {
+        PvPToggle.core().setStatus(player.getUniqueId(), false);
+        player.sendMessage(PvPToggle.format(PvPToggle.config().getString("pvp-disabled")));
+        cooldownMap.put(player, System.currentTimeMillis());
+      } else {
+        return false;
+      }
+    }
     return true;
   }
 
   @Nullable
   @Override
-  public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
-                                    @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
+  public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
     if (args.length == 1)
       return TabCompleterBase.filterStartingWith(args[0], Arrays.asList("on", "off"));
     else if (args.length == 2)
@@ -184,23 +141,19 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
   }
 
   /**
-   * This is so we don't run into issues with a player being in multiple regions from different plugins
-   */
-  String regionPluginFound = "";
-
-  /**
    * Check if a player is in a region
    *
    * @param player the player to check
    * @return true if in region, false if not
    */
-  public boolean playerIsInRegion(Player player) {
+  public boolean playerIsInRegion(@NotNull Player player) {
+    if (PvPToggle.hasGriefPrevention && PvPToggle.hasWorldGuard) {
+      return GriefPrevention.playerInRegion(player.getLocation()) || WorldGuard.isInRegion(player);
+    }
     if (PvPToggle.hasWorldGuard) {
-      regionPluginFound = "WorldGuard";
       return WorldGuard.isInRegion(player);
     }
     if (PvPToggle.hasGriefPrevention) {
-      regionPluginFound = "GriefPrevention";
       return GriefPrevention.playerInRegion(player.getLocation());
     }
     return false;
@@ -212,14 +165,20 @@ public class CommandPvP implements CommandExecutor, TabCompleter {
    * @param player the player who's location to we want to check
    * @return true: pvp forced on | false: pvp forced off | null: not specified
    */
-  public Boolean getRegionToggle(Player player) {
-    switch (regionPluginFound) {
-      case "WorldGuard":
+  public Boolean getRegionToggle(@NotNull Player player) {
+    try {
+      if (PvPToggle.hasGriefPrevention && PvPToggle.hasWorldGuard) {
+        return GriefPrevention.getRegionToggle(player.getLocation()) || WorldGuard.getRegionToggle(player);
+      }
+      if (PvPToggle.hasWorldGuard) {
         return WorldGuard.getRegionToggle(player);
-      case "GriefPrevention":
+      }
+      if (PvPToggle.hasGriefPrevention) {
         return GriefPrevention.getRegionToggle(player.getLocation());
-      default:
-        return null;
+      }
+      return null;
+    } catch (NullPointerException ex) {
+      return null;
     }
   }
 }
