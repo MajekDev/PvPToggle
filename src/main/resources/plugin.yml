@@ -1,5 +1,5 @@
 name: PvPToggle
-version: 3.0.0
+version: ${project.version}
 main: dev.majek.pvptoggle.PvPToggle
 api-version: 1.13
 prefix: PvPToggle
