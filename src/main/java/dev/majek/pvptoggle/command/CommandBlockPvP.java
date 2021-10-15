@@ -1,7 +1,31 @@
+/*
+ * This file is part of PvPToggle, licensed under the MIT License.
+ *
+ * Copyright (c) 2020-2021 Majekdor
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package dev.majek.pvptoggle.command;
 
 import dev.majek.pvptoggle.PvPToggle;
 import dev.majek.pvptoggle.data.User;
+import dev.majek.pvptoggle.message.Message;
 import dev.majek.pvptoggle.util.TabCompleterBase;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -35,21 +59,18 @@ public class CommandBlockPvP implements TabExecutor {
       return false;
 
     // Get a user or all
-    PvPToggle.blockPvp = status;
     if (args[1].equalsIgnoreCase("all")) {
-      PvPToggle.dataHandler().getAllUsers().forEach(user -> user.pvpBlocked(status).updateUser());
+      PvPToggle.userHandler().getAllUsers().forEach(user -> user.pvpBlocked(status).updateUser());
     } else {
-      User user = PvPToggle.dataHandler().getUser(args[1]);
+      User user = PvPToggle.userHandler().getUser(args[1]);
       if (user == null) {
-        sender.sendMessage(PvPToggle.format(PvPToggle.core().getConfig().getString("unknown-player",
-            "&cUnable to locate player %player%.").replace("%player%", args[1])));
+        Message.UNKNOWN_PLAYER.send(sender, args[1]);
         return true;
       }
       user.pvpBlocked(status).updateUser();
     }
 
-    sender.sendMessage(PvPToggle.format((PvPToggle.core().getConfig().getString("pvp-block-set") + "")
-        .replace("%toggle%", String.valueOf(status))));
+    Message.PVP_BLOCK_SET.send(sender, !status);
     return true;
   }
 
@@ -65,7 +86,7 @@ public class CommandBlockPvP implements TabExecutor {
         options.add("all");
         return TabCompleterBase.filterStartingWith(args[1], options);
       } else if (args[0].equalsIgnoreCase("false")) {
-        List<String> options = PvPToggle.dataHandler().getAllUsers().stream().filter(User::pvpBlocked)
+        List<String> options = PvPToggle.userHandler().getAllUsers().stream().filter(User::pvpBlocked)
             .map(User::username).collect(Collectors.toList());
         options.add("all");
         return TabCompleterBase.filterStartingWith(args[1], options);

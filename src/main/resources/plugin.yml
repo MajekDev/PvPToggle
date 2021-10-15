@@ -1,11 +1,11 @@
 name: PvPToggle
-version: ${project.version}
+version: 3.0.0
 main: dev.majek.pvptoggle.PvPToggle
 api-version: 1.13
 prefix: PvPToggle
 softdepend: [ WorldGuard, GriefPrevention, RegionProtection, PlaceholderAPI, Lands ]
 authors: [ Majekdor ]
-description: Easily toggle your PvP preference.
+description: A simple plugin that allows players to easily toggle their PvP preference.
 website: https://majek.dev
 commands:
   pvp:
@@ -19,8 +19,12 @@ commands:
     permission: pvptoggle.allpvp
   blockpvp:
     description: Block players from toggling PvP.
-    usage: /blockpvp <true|false>
+    usage: /blockpvp <true|false> <all|player>
     permission: pvptoggle.blockpvp
+  pvptogglereload:
+    description: Reload the plugin.
+    usage: /pvptogglereload
+    permission: pvptoggle.reload
 permissions:
   pvptoggle.others:
     description: Allows users to modify other player's PvP preference.
@@ -33,4 +37,10 @@ permissions:
     default: op
   pvptoggle.blockpvp:
     description: Allows player to block pvp status changes.
+    default: op
+  pvptoggle.cooldown.bypass:
+    description: Allows players to bypass the cooldown for /pvp.
+    default: op
+  pvptoggle.reload:
+    description: Allows players to reload the plugin.
     default: op

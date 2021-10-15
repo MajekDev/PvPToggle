@@ -1,10 +1,33 @@
+/*
+ * This file is part of PvPToggle, licensed under the MIT License.
+ *
+ * Copyright (c) 2020-2021 Majekdor
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package dev.majek.pvptoggle.command;
 
 import dev.majek.pvptoggle.PvPToggle;
-import dev.majek.pvptoggle.hooks.GriefPrevention;
-import dev.majek.pvptoggle.hooks.WorldGuard;
+import dev.majek.pvptoggle.message.Message;
 import dev.majek.pvptoggle.util.TabCompleterBase;
 import dev.majek.pvptoggle.util.TimeInterval;
+import net.kyori.adventure.util.TriState;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -27,7 +50,7 @@ public class CommandPvP implements TabExecutor {
 
       // Make sure the sender has permission
       if (!sender.hasPermission("pvptoggle.others"))   {
-        sender.sendMessage(PvPToggle.config().getString("no-permission", "&cYou do not have permission to do that!"));
+        Message.NO_PERMISSION.send(sender);
         return true;
       }
 
@@ -46,30 +69,29 @@ public class CommandPvP implements TabExecutor {
 
       // Make sure target is online
       if (target == null) {
-        sender.sendMessage(PvPToggle.format(PvPToggle.config().getString("unknown-player",
-            "&cUnable to locate player %player%.").replace("%player%", args[1])));
+        Message.UNKNOWN_PLAYER.send(sender, args[1]);
         return true;
       }
 
       // Check if a target is in a region that doesn't allow pvp toggling
-      if (playerIsInRegion(target) && getRegionToggle(target) != null) {
-        sender.sendMessage(PvPToggle.format(PvPToggle.config().getString("region-deny",
-            "&c%noun% in a region with PvP forced %toggle%.").replace("%noun%", PvPToggle.config()
-            .getString("player is", "%player% is").replace("%target%", target.getName()))
-            .replace("%toggle%", getRegionToggle(target) ? PvPToggle.config().getString("forced-on", "on")
-                : PvPToggle.config().getString("forced-off", "off"))));
+      if (PvPToggle.hookManager().isInRegion(target) && PvPToggle.hookManager().getRegionToggle(target) != TriState.NOT_SET) {
+        Message.REGION_DENY.send(sender, PvPToggle.hookManager().getRegionToggle(target) == TriState.TRUE, false, target);
+        return true;
+      }
+
+      // Check if the target is in a world where the command is disabled
+      if (PvPToggle.core().disabledWorlds().contains(target.getWorld())) {
+        Message.DISABLED_WORLD.send(sender, false, target);
         return true;
       }
 
       // Change target status and send message
-      sender.sendMessage(PvPToggle.format(PvPToggle.config().getString("pvp-toggle-other",
-          "&6PvP is now %toggle% for &b%player%&6.").replace("%toggle%", toggle ? PvPToggle.config()
-          .getString("forced-on", "on") : PvPToggle.config().getString("forced-off", "off"))
-          .replace("%player%", target.getName())));
+      Message.PVP_TOGGLE_OTHER.send(sender, toggle, target);
       PvPToggle.core().setStatus(target, toggle);
-      target.sendMessage(PvPToggle.format(PvPToggle.config().getString(toggle ? "pvp-enabled" : "pvp-disabled")));
+      Message.PVP_CHANGED.send(target, toggle);
     }
 
+    // Player is specifying on or off for themselves
     else if (args.length == 1) {
 
       if (!(sender instanceof Player)) {
@@ -80,46 +102,41 @@ public class CommandPvP implements TabExecutor {
 
       // Check if the player is in a world where the command is disabled
       if (PvPToggle.core().disabledWorlds().contains(player.getWorld())) {
-        player.sendMessage(PvPToggle.format(PvPToggle.config().getString("disabled-world",
-            "&cYou are in a world where this command is disabled.")));
+        Message.DISABLED_WORLD.send(player, true, null);
         return true;
       }
 
       // Check if the command is on cooldown
-      if (PvPToggle.config().getInt("pvp-cooldown", 60) > 0 && cooldownMap.containsKey(player)) {
+      if (PvPToggle.config().getInt("pvp-cooldown", 60) > 0 && cooldownMap.containsKey(player)
+          && !player.hasPermission("pvptoggle.cooldown.bypass")) {
         long timeSinceLast = (System.currentTimeMillis() - cooldownMap.get(player));
         if ((timeSinceLast / 1000L) < PvPToggle.config().getInt("pvp-cooldown", 60)) {
           long useIn = (PvPToggle.config().getInt("pvp-cooldown", 60) * 1000L) - timeSinceLast;
-          player.sendMessage(PvPToggle.format(PvPToggle.config().getString("on-cooldown",
-              "&cYou may use this command again in %cooldown%.")
-              .replace("%cooldown%", TimeInterval.formatTime(useIn, true))));
+          Message.ON_COOLDOWN.send(player, TimeInterval.formatTime(useIn, true));
           return true;
         }
       }
 
       // Check if the player is blocked from changing their status
-      if (PvPToggle.dataHandler().getUser(player).pvpBlocked()) {
-        player.sendMessage(PvPToggle.format(PvPToggle.config().getString("pvp-blocked", "&6Toggling PvP is blocked.")));
+      if (PvPToggle.userHandler().getUser(player).pvpBlocked()) {
+        Message.PVP_BLOCKED.send(player);
         return true;
       }
 
       // Check if a player is in a region that doesn't allow pvp toggling
-      if (playerIsInRegion(player) && getRegionToggle(player) != null) {
-        player.sendMessage(PvPToggle.format(PvPToggle.config().getString("region-deny",
-            "&c%noun% in a region with PvP forced %toggle%.").replace("%noun%", PvPToggle.config()
-            .getString("you-are", "You are")).replace("%toggle%", getRegionToggle(player) ? PvPToggle
-            .config().getString("forced-on", "on") : PvPToggle.config().getString("forced-off", "off"))));
+      if (PvPToggle.hookManager().isInRegion(player) && PvPToggle.hookManager().getRegionToggle(player) != TriState.NOT_SET) {
+        Message.REGION_DENY.send(sender, PvPToggle.hookManager().getRegionToggle(player) == TriState.TRUE, true, null);
         return true;
       }
 
       // Set pvp status
       if (args[0].equalsIgnoreCase("on")) {
         PvPToggle.core().setStatus(player.getUniqueId(), true);
-        player.sendMessage(PvPToggle.format(PvPToggle.config().getString("pvp-enabled")));
+        Message.PVP_ENABLED.send(player);
         cooldownMap.put(player, System.currentTimeMillis());
       } else if (args[0].equalsIgnoreCase("off")) {
         PvPToggle.core().setStatus(player.getUniqueId(), false);
-        player.sendMessage(PvPToggle.format(PvPToggle.config().getString("pvp-disabled")));
+        Message.PVP_DISABLED.send(player);
         cooldownMap.put(player, System.currentTimeMillis());
       } else {
         return false;
@@ -138,47 +155,5 @@ public class CommandPvP implements TabExecutor {
           TabCompleterBase.getOnlinePlayers(args[1]) : Collections.emptyList());
     else
       return Collections.emptyList();
-  }
-
-  /**
-   * Check if a player is in a region
-   *
-   * @param player the player to check
-   * @return true if in region, false if not
-   */
-  public boolean playerIsInRegion(@NotNull Player player) {
-    if (PvPToggle.hasGriefPrevention && PvPToggle.hasWorldGuard) {
-      return GriefPrevention.playerInRegion(player.getLocation()) || WorldGuard.isInRegion(player);
-    }
-    if (PvPToggle.hasWorldGuard) {
-      return WorldGuard.isInRegion(player);
-    }
-    if (PvPToggle.hasGriefPrevention) {
-      return GriefPrevention.playerInRegion(player.getLocation());
-    }
-    return false;
-  }
-
-  /**
-   * Check if the region a player is in specifies a pvp toggle
-   *
-   * @param player the player who's location to we want to check
-   * @return true: pvp forced on | false: pvp forced off | null: not specified
-   */
-  public Boolean getRegionToggle(@NotNull Player player) {
-    try {
-      if (PvPToggle.hasGriefPrevention && PvPToggle.hasWorldGuard) {
-        return GriefPrevention.getRegionToggle(player.getLocation()) || WorldGuard.getRegionToggle(player);
-      }
-      if (PvPToggle.hasWorldGuard) {
-        return WorldGuard.getRegionToggle(player);
-      }
-      if (PvPToggle.hasGriefPrevention) {
-        return GriefPrevention.getRegionToggle(player.getLocation());
-      }
-      return null;
-    } catch (NullPointerException ex) {
-      return null;
-    }
   }
 }

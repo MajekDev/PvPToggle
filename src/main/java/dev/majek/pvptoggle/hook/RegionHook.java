@@ -21,23 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package dev.majek.pvptoggle.storage;
+package dev.majek.pvptoggle.hook;
 
-import dev.majek.pvptoggle.data.User;
+import net.kyori.adventure.util.TriState;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
+public interface RegionHook {
 
-public interface StorageMethod {
+  boolean isInRegion(@NotNull Player player);
 
-  void loadAllUsers();
-
-  void addUser(@NotNull User user);
-
-  User getUser(@NotNull UUID uuid);
-
-  void updateUser(@NotNull User user);
-
-  void removeUser(@NotNull UUID uuid);
-
+  TriState getRegionToggle(@NotNull Player player);
 }

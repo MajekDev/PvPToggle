@@ -1,5 +1,5 @@
 /*
- * This file is part of HexNicks, licensed under the MIT License.
+ * This file is part of PvPToggle, licensed under the MIT License.
  *
  * Copyright (c) 2020-2021 Majekdor
  *
@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package dev.majek.pvptoggle.data;
 
 import com.google.gson.*;

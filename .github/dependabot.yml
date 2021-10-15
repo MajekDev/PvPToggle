@@ -1,14 +1,7 @@
 version: 2
+
 updates:
-- package-ecosystem: maven
-  directory: "/"
-  schedule:
-    interval: daily
-    time: "10:00"
-  open-pull-requests-limit: 10
-  ignore:
-  - dependency-name: com.github.angeschossen:LandsAPI
-    versions:
-    - 5.4.0
-    - 5.4.12
-    - 5.5.5
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "daily"

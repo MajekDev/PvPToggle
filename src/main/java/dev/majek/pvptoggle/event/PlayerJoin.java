@@ -21,23 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package dev.majek.pvptoggle.storage;
+package dev.majek.pvptoggle.event;
 
+import dev.majek.pvptoggle.PvPToggle;
 import dev.majek.pvptoggle.data.User;
-import org.jetbrains.annotations.NotNull;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 
-import java.util.UUID;
+public class PlayerJoin implements Listener {
 
-public interface StorageMethod {
-
-  void loadAllUsers();
-
-  void addUser(@NotNull User user);
-
-  User getUser(@NotNull UUID uuid);
-
-  void updateUser(@NotNull User user);
-
-  void removeUser(@NotNull UUID uuid);
-
+  @EventHandler(priority = EventPriority.HIGHEST)
+  public void onPlayerJoin(PlayerJoinEvent event) {
+    Player player = event.getPlayer();
+    User user = PvPToggle.storageMethod().getUser(player.getUniqueId());
+    if (user == null) {
+      user = PvPToggle.userHandler().getUser(player);
+    }
+    // Turn pvp off based on config option
+    if (PvPToggle.config().getBoolean("off-on-join", false)) {
+      user.pvpStatus(false);
+    }
+    PvPToggle.storageMethod().updateUser(user);
+  }
 }
+

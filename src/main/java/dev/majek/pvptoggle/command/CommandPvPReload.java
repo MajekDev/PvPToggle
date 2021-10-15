@@ -21,23 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package dev.majek.pvptoggle.storage;
+package dev.majek.pvptoggle.command;
 
-import dev.majek.pvptoggle.data.User;
+import dev.majek.pvptoggle.PvPToggle;
+import dev.majek.pvptoggle.message.Message;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+import java.util.Collections;
+import java.util.List;
 
-public interface StorageMethod {
+public class CommandPvPReload implements TabExecutor {
+  @Override
+  public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
+                           @NotNull String label, @NotNull String[] args) {
+    PvPToggle.core().reload();
+    Message.PLUGIN_RELOADED.send(sender);
+    return true;
+  }
 
-  void loadAllUsers();
-
-  void addUser(@NotNull User user);
-
-  User getUser(@NotNull UUID uuid);
-
-  void updateUser(@NotNull User user);
-
-  void removeUser(@NotNull UUID uuid);
-
+  @Override
+  public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
+                                              @NotNull String alias, @NotNull String[] args) {
+    return Collections.emptyList();
+  }
 }

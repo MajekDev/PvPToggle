@@ -21,23 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package dev.majek.pvptoggle.storage;
+package dev.majek.pvptoggle.api;
 
-import dev.majek.pvptoggle.data.User;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
-
-public interface StorageMethod {
-
-  void loadAllUsers();
-
-  void addUser(@NotNull User user);
-
-  User getUser(@NotNull UUID uuid);
-
-  void updateUser(@NotNull User user);
-
-  void removeUser(@NotNull UUID uuid);
-
+public class PvPToggleApi {
 }

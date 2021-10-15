@@ -21,23 +21,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package dev.majek.pvptoggle.storage;
+package dev.majek.pvptoggle.data;
 
-import dev.majek.pvptoggle.data.User;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-public interface StorageMethod {
+public class UserHandler {
 
-  void loadAllUsers();
+  private final Map<UUID, User> userMap;
 
-  void addUser(@NotNull User user);
+  public UserHandler() {
+    userMap = new HashMap<>();
+  }
 
-  User getUser(@NotNull UUID uuid);
+  public Collection<User> getAllUsers() {
+    return userMap.values();
+  }
 
-  void updateUser(@NotNull User user);
+  public void addUser(@NotNull User user) {
+    userMap.put(user.id(), user);
+  }
 
-  void removeUser(@NotNull UUID uuid);
+  @NotNull
+  public User getUser(@NotNull Player player) {
+    if (userMap.containsKey(player.getUniqueId())) {
+      return userMap.get(player.getUniqueId());
+    } else {
+      User user = new User(player);
+      addUser(user);
+      return user;
+    }
+  }
 
+  @Nullable
+  public User getUser(@NotNull String name) {
+    return getAllUsers().stream().filter(user -> user.username().equalsIgnoreCase(name))
+        .collect(Collectors.toList()).get(0);
+  }
+
+  public User getUser(@NotNull UUID uuid) {
+    return userMap.get(uuid);
+  }
 }
