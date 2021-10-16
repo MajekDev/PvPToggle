@@ -89,6 +89,7 @@ public class CommandPvP implements TabExecutor {
       Message.PVP_TOGGLE_OTHER.send(sender, toggle, target);
       PvPToggle.core().setStatus(target, toggle);
       Message.PVP_CHANGED.send(target, toggle);
+      return true;
     }
 
     // Player is specifying on or off for themselves
@@ -141,8 +142,9 @@ public class CommandPvP implements TabExecutor {
       } else {
         return false;
       }
+      return true;
     }
-    return true;
+    return false;
   }
 
   @Nullable
