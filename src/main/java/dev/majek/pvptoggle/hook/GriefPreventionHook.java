@@ -27,6 +27,7 @@ import dev.majek.pvptoggle.PvPToggle;
 import dev.majek.pvptoggle.data.User;
 import dev.majek.pvptoggle.message.Message;
 import me.ryanhamshire.GriefPrevention.Claim;
+import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import net.kyori.adventure.util.TriState;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -79,13 +80,15 @@ public class GriefPreventionHook implements Listener, RegionHook {
   }
 
   public boolean isClaimPvPSafeZone(Location location) {
-    Claim claim = me.ryanhamshire.GriefPrevention.GriefPrevention.instance.dataStore
-        .getClaimAt(location, false, null);
-    return me.ryanhamshire.GriefPrevention.GriefPrevention.instance.claimIsPvPSafeZone(claim);
+    Claim claim = GriefPrevention.instance.dataStore.getClaimAt(location, false, null);
+    if (claim == null) {
+      return false;
+    }
+    return GriefPrevention.instance.claimIsPvPSafeZone(claim);
   }
 
   public void check(Player player, Location location) {
-    if (isClaimPvPSafeZone(location)) {
+    if (isClaimPvPSafeZone(location) && !PvPToggle.userHandler().getUser(player).inRegion()) {
       Message.REGION_ENTER.send(player, false);
       PvPToggle.core().setStatus(player.getUniqueId(), false);
       PvPToggle.userHandler().getUser(player).inRegion(true);
