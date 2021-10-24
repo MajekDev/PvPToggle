@@ -84,6 +84,7 @@ public class HookManager {
         PvPToggle.core().getServer().getPluginManager().getPlugin("Lands") != null) {
       PvPToggle.log("Hooking into Lands...");
       landsHooked = true;
+      new LandsHook();
     }
     if (PvPToggle.core().getServer().getPluginManager().isPluginEnabled("GriefDefender") &&
         PvPToggle.core().getServer().getPluginManager().getPlugin("GriefDefender") != null) {

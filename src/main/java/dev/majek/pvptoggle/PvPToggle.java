@@ -68,7 +68,7 @@ import java.util.UUID;
 public final class PvPToggle extends JavaPlugin {
 
   private static PvPToggle          instance;
-  private static PvPToggleApi api;
+  private static PvPToggleApi       api;
   private static FileConfiguration  config;
   private static MySQL              sql;
   private static StorageMethod      storageMethod;

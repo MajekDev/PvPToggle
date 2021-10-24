@@ -22,6 +22,9 @@ disabled-worlds:
 # Otherwise PvPToggle will let them do what they want
 force-pvp-in-region-allow: false
 
+# Whether players should be notified of a region's pvp status (whether they can pvp there) when they enter
+region-notify: true
+
 # Set whether changes in PvP status are logged to console (default: false)
 console-log: false
 
@@ -76,6 +79,9 @@ region-deny: '&c%noun% in a region with PvP forced %toggle%.'
 
 # %toggle% is either on or off
 region-enter: '&cYou have entered a region where PvP is forced %toggle%.'
+
+# %toggle% is either on or off
+your-pvp: '&6Your PvP is currently %toggle%. Use /pvp <on|off> to change it.'
 
 # Strings for placeholders in above messages
 forced-on: 'on'

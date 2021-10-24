@@ -89,7 +89,8 @@ public class GriefPreventionHook implements Listener, RegionHook {
 
   public void check(Player player, Location location) {
     if (isClaimPvPSafeZone(location) && !PvPToggle.userHandler().getUser(player).inRegion()) {
-      Message.REGION_ENTER.send(player, false);
+      if (PvPToggle.config().getBoolean("region-notify", true))
+        Message.REGION_ENTER.send(player, false);
       PvPToggle.core().setStatus(player.getUniqueId(), false);
       PvPToggle.userHandler().getUser(player).inRegion(true);
     }

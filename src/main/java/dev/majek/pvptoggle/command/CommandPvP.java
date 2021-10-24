@@ -144,7 +144,14 @@ public class CommandPvP implements TabExecutor {
       }
       return true;
     }
-    return false;
+
+    if (!(sender instanceof Player)) {
+      return false;
+    }
+
+    Player player = (Player) sender;
+    Message.YOUR_PVP.send(player, PvPToggle.userHandler().getUser(player).pvpStatus());
+    return true;
   }
 
   @Nullable

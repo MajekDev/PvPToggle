@@ -92,6 +92,11 @@ public interface Message {
           on ? configString("forced-on", "on") : configString("forced-off", "off")
       ).build());
 
+  Args1<Boolean> YOUR_PVP = (on) -> configString("your-pvp", "&6Your PvP is currently %toggle%. Use /pvp <on|off> to change it.")
+      .replaceText(TextReplacementConfig.builder().match("%toggle%").replacement(
+          on ? configString("forced-on", "on") : configString("forced-off", "off")
+      ).build());
+
   /**
    * A message that has no arguments that need to be replaced.
    */
