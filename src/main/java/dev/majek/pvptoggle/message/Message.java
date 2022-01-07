@@ -23,6 +23,7 @@
  */
 package dev.majek.pvptoggle.message;
 
+import dev.majek.chattools.MiniMessageWrapper;
 import dev.majek.pvptoggle.PvPToggle;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;

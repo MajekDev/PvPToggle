@@ -74,6 +74,10 @@
                                     <pattern>org.bstats</pattern>
                                     <shadedPattern>dev.majek.relocations.org.bstats</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>dev.majek.chattools</pattern>
+                                    <shadedPattern>dev.majek.relocations.dev.majek.chattools</shadedPattern>
+                                </relocation>
                             </relocations>
                             <minimizeJar>true</minimizeJar>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
@@ -110,6 +114,10 @@
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
+        </repository>
+        <repository>
+            <id>majek-snapshots</id>
+            <url>https://repo.majek.dev/snapshots/</url>
         </repository>
     </repositories>
 
@@ -149,25 +157,18 @@
             <version>4.0.1</version>
             <scope>compile</scope>
         </dependency>
-        <!-- MiniMessage -->
-        <dependency>
-            <groupId>net.kyori</groupId>
-            <artifactId>adventure-text-minimessage</artifactId>
-            <version>4.2.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
         <!-- PlaceholderAPI -->
         <dependency>
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
-            <version>2.10.10</version>
+            <version>2.11.1</version>
             <scope>provided</scope>
         </dependency>
         <!-- WorldGuard -->
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
-            <version>7.0.5</version>
+            <version>7.0.6</version>
             <scope>provided</scope>
         </dependency>
         <!-- GriefPrevention -->
@@ -196,6 +197,12 @@
             <groupId>com.tchristofferson</groupId>
             <artifactId>ConfigUpdater</artifactId>
             <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <!-- Chat Tools -->
+        <dependency>
+            <groupId>dev.majek</groupId>
+            <artifactId>chat-tools</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
