@@ -28,6 +28,7 @@ import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.Flags;
+import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 import dev.majek.pvptoggle.PvPToggle;
@@ -73,20 +74,23 @@ public class WorldGuardHook implements Listener, RegionHook {
     LocalPlayer localPlayer = getWorldGuard().wrapPlayer(player);
     ApplicableRegionSet set = set(player);
 
-    if (set.testState(localPlayer, Flags.PVP) && PvPToggle.core().getConfig()
-        .getBoolean("force-pvp-in-region-allow"))
+    if (set.queryState(localPlayer, Flags.PVP) == StateFlag.State.ALLOW &&
+        PvPToggle.core().getConfig().getBoolean("force-pvp-in-region-allow")) {
       return TriState.TRUE;
-    else if (!(set.testState(localPlayer, Flags.PVP)))
+    } else if (set.queryState(localPlayer, Flags.PVP) == StateFlag.State.DENY) {
       return TriState.FALSE;
-    else
+    } else {
       return TriState.NOT_SET;
+    }
   }
 
   @EventHandler
   public void onPlayerMove(PlayerMoveEvent event) {
     // Check if the player actually moved or just moved their head
     if (event.getTo().getBlockX() == event.getFrom().getBlockX() && event.getTo().getBlockY()
-        == event.getFrom().getBlockY() && event.getTo().getBlockZ() == event.getFrom().getBlockZ()) return;
+        == event.getFrom().getBlockY() && event.getTo().getBlockZ() == event.getFrom().getBlockZ()) {
+      return;
+    }
     checkRegion(event.getPlayer(), true);
   }
 
@@ -110,18 +114,20 @@ public class WorldGuardHook implements Listener, RegionHook {
 
       // Check if the player enters into a region
     } else if (set.size() > 0 && !user.inRegion()) {
-      if (set.testState(localPlayer, Flags.PVP) && PvPToggle.core().getConfig()
-          .getBoolean("force-pvp-in-region-allow")) {
-        if (PvPToggle.config().getBoolean("region-notify", true))
+      if (set.queryState(localPlayer, Flags.PVP) == StateFlag.State.ALLOW &&
+          PvPToggle.core().getConfig().getBoolean("force-pvp-in-region-allow")) {
+        if (PvPToggle.config().getBoolean("region-notify", true)) {
           Message.REGION_ENTER.send(player, true);
+        }
         PvPToggle.core().setStatus(player.getUniqueId(), true);
-      } else if (!(set.testState(localPlayer, Flags.PVP))) {
-        if (PvPToggle.config().getBoolean("region-notify", true))
+      } else if (set.queryState(localPlayer, Flags.PVP) == StateFlag.State.DENY) {
+        if (PvPToggle.config().getBoolean("region-notify", true)) {
           Message.REGION_ENTER.send(player, false);
+        }
         PvPToggle.core().setStatus(player.getUniqueId(), false);
       }
       user.inRegion(true);
-      // If the flag is neither on or off we don't need to do anything
+      // If the flag is neither on nor off we don't need to do anything
     }
   }
 
