@@ -42,30 +42,36 @@ public class CommandAllPvP implements TabExecutor {
   @Override
   public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
                            @NotNull String[] args) {
-    if (args.length == 0)
+    if (args.length == 0) {
       return false;
+    }
+
     boolean status;
-    if (args[0].equalsIgnoreCase("on"))
+    if (args[0].equalsIgnoreCase("on")) {
       status = true;
-    else if (args[0].equalsIgnoreCase("off"))
+    } else if (args[0].equalsIgnoreCase("off")) {
       status = false;
-    else
+    } else {
       return false;
+    }
+
     for (Player player : Bukkit.getOnlinePlayers()) {
       PvPToggle.core().setStatus(player.getUniqueId(), status);
       Message.PVP_CHANGED.send(player, status);
     }
+
     Message.PVP_TOGGLE_ALL.send(sender, status);
     return true;
   }
 
   @Nullable
   @Override
-  public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
-                                    @NotNull String[] args) {
-    if (args.length == 1)
+  public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
+                                    @NotNull String label, @NotNull String[] args) {
+    if (args.length == 1) {
       return Arrays.asList("on", "off");
-    else
+    } else {
       return Collections.emptyList();
+    }
   }
 }

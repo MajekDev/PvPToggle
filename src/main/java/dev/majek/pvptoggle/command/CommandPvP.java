@@ -40,7 +40,7 @@ import java.util.*;
 
 public class CommandPvP implements TabExecutor {
 
-  public static Map<Player, Long> cooldownMap = new HashMap<>();
+  public static final Map<Player, Long> cooldownMap = new HashMap<>();
 
   @Override
   public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
@@ -157,12 +157,13 @@ public class CommandPvP implements TabExecutor {
   @Nullable
   @Override
   public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-    if (args.length == 1)
+    if (args.length == 1) {
       return TabCompleterBase.filterStartingWith(args[0], Arrays.asList("on", "off"));
-    else if (args.length == 2)
+    } else if (args.length == 2) {
       return TabCompleterBase.filterStartingWith(args[1], sender.hasPermission("pvptoggle.others") ?
           TabCompleterBase.getOnlinePlayers(args[1]) : Collections.emptyList());
-    else
+    } else {
       return Collections.emptyList();
+    }
   }
 }

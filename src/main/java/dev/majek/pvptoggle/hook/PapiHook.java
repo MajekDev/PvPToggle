@@ -72,13 +72,16 @@ public class PapiHook extends PlaceholderExpansion {
   @SuppressWarnings("all")
   public String onRequest(OfflinePlayer player, @NotNull String identifier) {
     User user = PvPToggle.userHandler().getUser(player.getUniqueId());
-    if (user == null)
+    if (user == null) {
       return null;
+    }
 
-    if (identifier.equalsIgnoreCase("status"))
+    if (identifier.equalsIgnoreCase("status")) {
       return user.pvpStatus()
           ? PvPToggle.core().getConfig().getString("boolean-true", "true")
           : PvPToggle.core().getConfig().getString("boolean-false", "false");
+    }
+
     return null;
   }
 

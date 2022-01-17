@@ -47,4 +47,3 @@ public class PlayerJoin implements Listener {
     PvPToggle.storageMethod().updateUser(user);
   }
 }
-

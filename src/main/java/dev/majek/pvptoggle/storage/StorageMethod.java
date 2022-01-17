@@ -39,5 +39,4 @@ public interface StorageMethod {
   void updateUser(@NotNull User user);
 
   void removeUser(@NotNull UUID uuid);
-
 }

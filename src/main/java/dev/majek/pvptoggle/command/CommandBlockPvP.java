@@ -51,12 +51,13 @@ public class CommandBlockPvP implements TabExecutor {
 
     // Get the status of block pvp
     boolean status;
-    if (args[0].equalsIgnoreCase("true"))
+    if (args[0].equalsIgnoreCase("true")) {
       status = true;
-    else if (args[0].equalsIgnoreCase("false"))
+    } else if (args[0].equalsIgnoreCase("false")) {
       status = false;
-    else
+    } else {
       return false;
+    }
 
     // Get a user or all
     if (args[1].equalsIgnoreCase("all")) {

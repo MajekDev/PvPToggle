@@ -59,7 +59,9 @@ public class GriefPreventionHook implements Listener, RegionHook {
   public void onPlayerMove(PlayerMoveEvent event) {
     // Check if the player actually moved or just moved their head
     if (event.getTo().getBlockX() == event.getFrom().getBlockX() && event.getTo().getBlockY()
-        == event.getFrom().getBlockY() && event.getTo().getBlockZ() == event.getFrom().getBlockZ()) return;
+        == event.getFrom().getBlockY() && event.getTo().getBlockZ() == event.getFrom().getBlockZ()) {
+      return;
+    }
     Player player = event.getPlayer();
     User user = PvPToggle.userHandler().getUser(player);
 
@@ -89,8 +91,9 @@ public class GriefPreventionHook implements Listener, RegionHook {
 
   public void check(Player player, Location location) {
     if (isClaimPvPSafeZone(location) && !PvPToggle.userHandler().getUser(player).inRegion()) {
-      if (PvPToggle.config().getBoolean("region-notify", true))
+      if (PvPToggle.config().getBoolean("region-notify", true)) {
         Message.REGION_ENTER.send(player, false);
+      }
       PvPToggle.core().setStatus(player.getUniqueId(), false);
       PvPToggle.userHandler().getUser(player).inRegion(true);
     }

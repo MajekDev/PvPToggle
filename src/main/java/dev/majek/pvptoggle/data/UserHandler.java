@@ -49,8 +49,7 @@ public class UserHandler {
     userMap.put(user.id(), user);
   }
 
-  @NotNull
-  public User getUser(@NotNull Player player) {
+  public @NotNull User getUser(@NotNull Player player) {
     if (userMap.containsKey(player.getUniqueId())) {
       return userMap.get(player.getUniqueId());
     } else {
@@ -60,8 +59,7 @@ public class UserHandler {
     }
   }
 
-  @Nullable
-  public User getUser(@NotNull String name) {
+  public @Nullable User getUser(@NotNull String name) {
     return getAllUsers().stream().filter(user -> user.username().equalsIgnoreCase(name))
         .collect(Collectors.toList()).get(0);
   }

@@ -36,7 +36,7 @@ import java.util.UUID;
 
 public class JsonStorage implements StorageMethod {
 
-  JsonConfig jsonConfig;
+  private final JsonConfig jsonConfig;
 
   public JsonStorage() {
     jsonConfig = new JsonConfig(PvPToggle.core().getDataFolder(), "pvp.json");

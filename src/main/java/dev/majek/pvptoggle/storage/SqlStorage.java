@@ -58,7 +58,7 @@ public class SqlStorage implements StorageMethod {
   public void addUser(@NotNull User user) {
     try {
       PreparedStatement ps = PvPToggle.sql().getConnection()
-          .prepareStatement("INSERT INTO `pvp_data` (`playerUUID`, `json`) VALUES (?, ?);");
+          .prepareStatement("INSERT INTO pvp_data (playerUUID, json) VALUES (?, ?);");
       ps.setString(1, user.id().toString());
       ps.setString(2, new Gson().toJson(user.toJson()));
       ps.executeUpdate();

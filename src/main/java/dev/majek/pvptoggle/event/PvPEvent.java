@@ -39,16 +39,19 @@ public class PvPEvent implements Listener {
   @EventHandler(ignoreCancelled = true)
   public void onPlayerPvP(EntityDamageByEntityEvent event) {
     // Ignore if it's not a player being damaged
-    if (!(event.getEntity() instanceof Player))
+    if (!(event.getEntity() instanceof Player)) {
       return;
+    }
 
     // If the player doesn't have permission we're not helping them :)
-    if (PvPToggle.config().getBoolean("use-permissions") && !event.getEntity().hasPermission("pvptoggle.use"))
+    if (PvPToggle.config().getBoolean("use-permissions") && !event.getEntity().hasPermission("pvptoggle.use")) {
       return;
+    }
 
     // Handle damage from Citizens NPCs
-    if (event.getDamager().hasMetadata("NPC") || event.getEntity().hasMetadata("NPC"))
+    if (event.getDamager().hasMetadata("NPC") || event.getEntity().hasMetadata("NPC")) {
       return;
+    }
 
     // Handle damage from projectiles
     Player damager = event.getDamager() instanceof Player ? (Player) event.getDamager() : null;
@@ -58,8 +61,10 @@ public class PvPEvent implements Listener {
     }
 
     // Ignore if the player is damaging themselves or an entity shot a projectile at them
-    if (damager == null || damager == event.getEntity() || damager.hasMetadata("NPC"))
+    if (damager == null || damager == event.getEntity() || damager.hasMetadata("NPC")) {
       return;
+    }
+
     Player attacked = (Player) event.getEntity();
     User attackedUser = PvPToggle.userHandler().getUser(attacked);
     User damagerUser = PvPToggle.userHandler().getUser(damager);
@@ -78,6 +83,7 @@ public class PvPEvent implements Listener {
         return;
       }
     }
+
     if (!damagerUser.pvpStatus()) {
       Message.NO_PVP.send(damager);
       event.setCancelled(true);
