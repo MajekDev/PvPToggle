@@ -54,16 +54,6 @@ public class CommandPvP implements TabExecutor {
         return true;
       }
 
-      // Get toggle
-      boolean toggle;
-      if (args[0].equalsIgnoreCase("on")) {
-        toggle = true;
-      } else if (args[0].equalsIgnoreCase("off")) {
-        toggle = false;
-      } else {
-        return false; // Send usage
-      }
-
       // Get target player
       Player target = Bukkit.getPlayer(args[1]);
 
@@ -71,6 +61,18 @@ public class CommandPvP implements TabExecutor {
       if (target == null) {
         Message.UNKNOWN_PLAYER.send(sender, args[1]);
         return true;
+      }
+
+      // Get toggle
+      boolean toggle;
+      if (args[0].equalsIgnoreCase("on")) {
+        toggle = true;
+      } else if (args[0].equalsIgnoreCase("off")) {
+        toggle = false;
+      } else if (args[0].equalsIgnoreCase("toggle")) {
+        toggle = !PvPToggle.userHandler().getUser(target).pvpStatus();
+      } else {
+        return false; // Send usage
       }
 
       // Check if a target is in a region that doesn't allow pvp toggling
@@ -130,18 +132,27 @@ public class CommandPvP implements TabExecutor {
         return true;
       }
 
-      // Set pvp status
+      // Get toggle
+      boolean toggle;
       if (args[0].equalsIgnoreCase("on")) {
-        PvPToggle.core().setStatus(player.getUniqueId(), true);
-        Message.PVP_ENABLED.send(player);
-        cooldownMap.put(player, System.currentTimeMillis());
+        toggle = true;
       } else if (args[0].equalsIgnoreCase("off")) {
-        PvPToggle.core().setStatus(player.getUniqueId(), false);
-        Message.PVP_DISABLED.send(player);
-        cooldownMap.put(player, System.currentTimeMillis());
+        toggle = false;
+      } else if (args[0].equalsIgnoreCase("toggle")) {
+        toggle = !PvPToggle.userHandler().getUser(player).pvpStatus();
       } else {
-        return false;
+        return false; // Send usage
       }
+
+      if (toggle) {
+        Message.PVP_ENABLED.send(player);
+      } else {
+        Message.PVP_DISABLED.send(player);
+      }
+
+      PvPToggle.core().setStatus(player.getUniqueId(), toggle);
+      cooldownMap.put(player, System.currentTimeMillis());
+
       return true;
     }
 
@@ -158,7 +169,7 @@ public class CommandPvP implements TabExecutor {
   @Override
   public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
     if (args.length == 1)
-      return TabCompleterBase.filterStartingWith(args[0], Arrays.asList("on", "off"));
+      return TabCompleterBase.filterStartingWith(args[0], Arrays.asList("on", "off", "toggle"));
     else if (args.length == 2)
       return TabCompleterBase.filterStartingWith(args[1], sender.hasPermission("pvptoggle.others") ?
           TabCompleterBase.getOnlinePlayers(args[1]) : Collections.emptyList());
