@@ -6,7 +6,7 @@
 
     <groupId>dev.majek.pvptoggle</groupId>
     <artifactId>PvPToggle</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.4-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>PvPToggle</name>
@@ -29,7 +29,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.9.0</version>
                 <configuration>
                     <release>11</release>
                 </configuration>

@@ -1,7 +1,7 @@
 /*
  * This file is part of PvPToggle, licensed under the MIT License.
  *
- * Copyright (c) 2020-2021 Majekdor
+ * Copyright (c) 2020-2022 Majekdor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +58,7 @@ public class SqlStorage implements StorageMethod {
   public void addUser(@NotNull User user) {
     try {
       PreparedStatement ps = PvPToggle.sql().getConnection()
-          .prepareStatement("INSERT INTO `pvp_data` (`playerUUID`, `json`) VALUES (?, ?);");
+          .prepareStatement("INSERT INTO pvp_data (playerUUID, json) VALUES (?, ?);");
       ps.setString(1, user.id().toString());
       ps.setString(2, new Gson().toJson(user.toJson()));
       ps.executeUpdate();

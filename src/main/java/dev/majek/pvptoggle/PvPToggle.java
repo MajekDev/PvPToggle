@@ -1,7 +1,7 @@
 /*
  * This file is part of PvPToggle, licensed under the MIT License.
  *
- * Copyright (c) 2020-2021 Majekdor
+ * Copyright (c) 2020-2022 Majekdor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@ package dev.majek.pvptoggle;
 
 import com.tchristofferson.configupdater.ConfigUpdater;
 import dev.majek.pvptoggle.api.PvPStatusChangeEvent;
-import dev.majek.pvptoggle.api.PvPToggleApi;
 import dev.majek.pvptoggle.command.CommandAllPvP;
 import dev.majek.pvptoggle.command.CommandBlockPvP;
 import dev.majek.pvptoggle.command.CommandPvP;
@@ -63,12 +62,10 @@ import java.util.UUID;
 /**
  * <p>Main plugin class.</p>
  * <p>Use {@link #core()} to access core plugin utilities such as nickname storage.</p>
- * <p>Use {@link #api()} to access api utilities such as event management.</p>
  */
 public final class PvPToggle extends JavaPlugin {
 
   private static PvPToggle          instance;
-  private static PvPToggleApi       api;
   private static FileConfiguration  config;
   private static MySQL              sql;
   private static StorageMethod      storageMethod;
@@ -83,7 +80,6 @@ public final class PvPToggle extends JavaPlugin {
    */
   public PvPToggle() {
     instance = this;
-    api = new PvPToggleApi();
     sql = new MySQL();
     userHandler = new UserHandler();
     hookManager = new HookManager();
@@ -153,34 +149,63 @@ public final class PvPToggle extends JavaPlugin {
       sql.disconnect();
   }
 
+  /**
+   * Get an instance of the main class of PvPToggle.
+   *
+   * @return plugin
+   */
   public static PvPToggle core() {
     return instance;
   }
 
-  public static PvPToggleApi api() {
-    return api;
-  }
-
+  /**
+   * Get PvPToggle's main configuration file.
+   *
+   * @return config
+   */
   public static FileConfiguration config() {
     return config;
   }
 
+  /**
+   * Get PvPToggle's sql manager.
+   *
+   * @return sql manager
+   */
   public static MySQL sql() {
     return sql;
   }
 
+  /**
+   * Get the storage method for managing plugin storage.
+   *
+   * @return storage handler
+   */
   public static StorageMethod storageMethod() {
     return storageMethod;
   }
 
+  /**
+   * Get the user handler for managing plugin users.
+   *
+   * @return user handler
+   */
   public static UserHandler userHandler() {
     return userHandler;
   }
 
+  /**
+   * Get the hook manager for managing plugin hooks.
+   *
+   * @return hook manager
+   */
   public static HookManager hookManager() {
     return hookManager;
   }
 
+  /**
+   * Reload the plugin.
+   */
   public void reload() {
     // Reload config for changed values
     instance.saveDefaultConfig();
@@ -196,14 +221,21 @@ public final class PvPToggle extends JavaPlugin {
     // Load disabled worlds
     for (String worldName : getConfig().getStringList("disabled-worlds")) {
       World world = Bukkit.getWorld(worldName);
-      if (world != null)
+      if (world != null) {
         disabledWorlds.add(world);
+      }
     }
 
     // Reload hooks
     hookManager.reload();
   }
 
+  /**
+   * Send a player a message in-game.
+   *
+   * @param sender the player to receive the message
+   * @param message the message
+   */
   public void sendMessage(@NotNull CommandSender sender, @NotNull Component message) {
     BukkitAudiences.create(core()).sender(sender).sendMessage(message);
   }
@@ -238,18 +270,38 @@ public final class PvPToggle extends JavaPlugin {
     }
   }
 
+  /**
+   * Get the worlds where PvPToggle will not operate.
+   *
+   * @return disabled worlds
+   */
   public Set<World> disabledWorlds() {
     return disabledWorlds;
   }
 
+  /**
+   * Log something to console.
+   *
+   * @param x the something
+   */
   public static void log(@NotNull Object x) {
     core().getLogger().info(x.toString());
   }
 
+  /**
+   * Log something to console as an error.
+   *
+   * @param x the something
+   */
   public static void error(@NotNull Object x) {
     core().getLogger().severe(x.toString());
   }
 
+  /**
+   * Log something to console if debugging is enabled.
+   *
+   * @param x the something
+   */
   public static void debug(@NotNull Object x) {
     if (config.getBoolean("debug", false)) {
       core().getLogger().warning(x.toString());
