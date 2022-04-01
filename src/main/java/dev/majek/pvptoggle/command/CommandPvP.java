@@ -44,24 +44,12 @@ public class CommandPvP implements TabExecutor {
 
   @Override
   public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-
-    // Check if we're changing another player's status
+    // Changing another player's status
     if (args.length > 1) {
-
       // Make sure the sender has permission
       if (!sender.hasPermission("pvptoggle.others"))   {
         Message.NO_PERMISSION.send(sender);
         return true;
-      }
-
-      // Get toggle
-      boolean toggle;
-      if (args[0].equalsIgnoreCase("on")) {
-        toggle = true;
-      } else if (args[0].equalsIgnoreCase("off")) {
-        toggle = false;
-      } else {
-        return false; // Send usage
       }
 
       // Get target player
@@ -72,6 +60,12 @@ public class CommandPvP implements TabExecutor {
         Message.UNKNOWN_PLAYER.send(sender, args[1]);
         return true;
       }
+
+      TriState triState = this.toggle(args[0], target);
+      if (triState == TriState.NOT_SET) {
+        return false;
+      }
+      boolean toggle = triState == TriState.TRUE;
 
       // Check if a target is in a region that doesn't allow pvp toggling
       if (PvPToggle.hookManager().isInRegion(target) && PvPToggle.hookManager().getRegionToggle(target) != TriState.NOT_SET) {
@@ -89,16 +83,13 @@ public class CommandPvP implements TabExecutor {
       Message.PVP_TOGGLE_OTHER.send(sender, toggle, target);
       PvPToggle.core().setStatus(target, toggle);
       Message.PVP_CHANGED.send(target, toggle);
-      return true;
     }
 
     // Player is specifying on or off for themselves
     else if (args.length == 1) {
-
       if (!(sender instanceof Player)) {
         return false;
       }
-
       Player player = (Player) sender;
 
       // Check if the player is in a world where the command is disabled
@@ -130,27 +121,28 @@ public class CommandPvP implements TabExecutor {
         return true;
       }
 
-      // Set pvp status
-      if (args[0].equalsIgnoreCase("on")) {
-        PvPToggle.core().setStatus(player.getUniqueId(), true);
-        Message.PVP_ENABLED.send(player);
-        cooldownMap.put(player, System.currentTimeMillis());
-      } else if (args[0].equalsIgnoreCase("off")) {
-        PvPToggle.core().setStatus(player.getUniqueId(), false);
-        Message.PVP_DISABLED.send(player);
-        cooldownMap.put(player, System.currentTimeMillis());
-      } else {
+      TriState triState = this.toggle(args[0], player);
+      if (triState == TriState.NOT_SET) {
         return false;
       }
-      return true;
-    }
+      boolean toggle = triState == TriState.TRUE;
 
-    if (!(sender instanceof Player)) {
-      return false;
-    }
+      // Set pvp status
+      PvPToggle.core().setStatus(player.getUniqueId(), toggle);
+      cooldownMap.put(player, System.currentTimeMillis());
+      if (toggle) {
+        Message.PVP_ENABLED.send(player);
+      } else {
+        Message.PVP_DISABLED.send(player);
+      }
+    } else {
+      if (!(sender instanceof Player)) {
+        return false;
+      }
 
-    Player player = (Player) sender;
-    Message.YOUR_PVP.send(player, PvPToggle.userHandler().getUser(player).pvpStatus());
+      Player player = (Player) sender;
+      Message.YOUR_PVP.send(player, PvPToggle.userHandler().getUser(player).pvpStatus());
+    }
     return true;
   }
 
@@ -158,11 +150,27 @@ public class CommandPvP implements TabExecutor {
   @Override
   public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
     if (args.length == 1)
-      return TabCompleterBase.filterStartingWith(args[0], Arrays.asList("on", "off"));
+      return TabCompleterBase.filterStartingWith(args[0], Arrays.asList("on", "off", "toggle"));
     else if (args.length == 2)
       return TabCompleterBase.filterStartingWith(args[1], sender.hasPermission("pvptoggle.others") ?
           TabCompleterBase.getOnlinePlayers(args[1]) : Collections.emptyList());
     else
       return Collections.emptyList();
+  }
+
+  private @NotNull TriState toggle(final @NotNull String toggle, final @NotNull Player target) {
+    switch (toggle) {
+      case "on":
+      case "true":
+        return TriState.TRUE;
+      case "off":
+      case "false":
+        return TriState.FALSE;
+      case "toggle":
+      case "swap":
+        return TriState.byBoolean(!PvPToggle.userHandler().getUser(target).pvpStatus());
+      default:
+        return TriState.NOT_SET;
+    }
   }
 }

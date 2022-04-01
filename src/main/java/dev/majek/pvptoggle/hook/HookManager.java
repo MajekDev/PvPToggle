@@ -39,6 +39,7 @@ public class HookManager {
   private boolean griefPreventionHooked;
   private boolean landsHooked;
   private boolean griefDefenderHooked; // Not working yet
+  private boolean luckPermsHooked;
 
   private final Set<RegionHook> regionHookSet;
 
@@ -49,6 +50,7 @@ public class HookManager {
     griefPreventionHooked = false;
     landsHooked = false;
     griefDefenderHooked = false;
+    luckPermsHooked = false;
     regionHookSet = new HashSet<>();
   }
 
@@ -91,6 +93,12 @@ public class HookManager {
       //PvPToggle.log("Hooking into GriefDefender...");
       griefDefenderHooked = true;
     }
+    if (PvPToggle.core().getServer().getPluginManager().isPluginEnabled("LuckPerms") &&
+        PvPToggle.core().getServer().getPluginManager().getPlugin("LuckPerms") != null) {
+      PvPToggle.log("Hooking into LuckPerms...");
+      luckPermsHooked = true;
+      new LuckPermsHook().registerContexts();
+    }
   }
 
   public boolean isPapiHooked() {
@@ -115,6 +123,10 @@ public class HookManager {
 
   public boolean isGriefDefenderHooked() {
     return griefDefenderHooked;
+  }
+
+  public boolean luckPermsHooked() {
+    return luckPermsHooked;
   }
 
   /**

@@ -113,7 +113,7 @@ public class WorldGuardHook implements Listener, RegionHook {
       }
 
       // Check if the player enters into a region
-    } else if (set.size() > 0 && !user.inRegion()) {
+    } else if (set.size() > 0) {
       if (set.queryState(localPlayer, Flags.PVP) == StateFlag.State.ALLOW &&
           PvPToggle.core().getConfig().getBoolean("force-pvp-in-region-allow")) {
         if (PvPToggle.config().getBoolean("region-notify", true)) {
